@@ -1,4 +1,4 @@
-# MCTS-ISMCTS-MINMAX
+# pyplAI
 
 ## Introducción
 Esta librería para Python es el resultado final de un TFG centrado en la implementación de algoritmos de MCTS para diferentes tipos de juegos de mesa, entre ellos, según clasifica la teoría de juegos, los juegos de información perfecta como lo son el ajedrez o las damas, en los que en todo momento cualquier jugador puede ver toda la información del juego como los posibles movimientos del rival, y juegos de información imperfecta, como lo son la mayoría de juegos de cartas como por ejemplo el Uno o la brisca, en el que los jugadores solo conocen información propia como sus cartas o información general como el estado de la mesa, pero desconocen la información del rival, como las cartas de los demás jugadores.
