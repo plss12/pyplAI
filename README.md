@@ -128,6 +128,8 @@ Juego.accion_visible,
 numeroJugadores, 
 tiempoEjecucion)
 
+Además, si en la creación del objeto añadimos un True como última variable, cuando hagamos uso de este, nos mostrará información útil sobre la ejecución del algoritmo, como por ejemplo, tiempo de ejecución, número de nodos creados y demás características propias de cada uno de los algoritmos.
+
 ### Llamada Objeto
 
 Una vez ya tengamos el objeto del algoritmo que queramos utilizar solamente debemos llamar a su método **ejecuta** y pasarle el objeto de la partida con el estado actual, esto devolverá el movimiento óptimo que calcule en el tiempo de computación dado o la profundidad en el caso del minmax. Un ejemplo para el algoritmo de mcts sería así:
