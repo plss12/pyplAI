@@ -1,5 +1,7 @@
 # pyplAI
 
+### [Repositorio GitHub](https://github.com/plss12/pyplAI/)
+
 ## Introducción
 Esta librería para Python es el resultado final de un TFG centrado en la implementación de algoritmos de MCTS para diferentes tipos de juegos de mesa, entre ellos, según clasifica la teoría de juegos, los juegos de información perfecta como lo son el ajedrez o las damas, en los que en todo momento cualquier jugador puede ver toda la información del juego como los posibles movimientos del rival, y juegos de información imperfecta, como lo son la mayoría de juegos de cartas como por ejemplo el Uno o la brisca, en el que los jugadores solo conocen información propia como sus cartas o información general como el estado de la mesa, pero desconocen la información del rival, como las cartas de los demás jugadores.
 
@@ -16,7 +18,11 @@ Un ejemplo serían los juegos en los que un jugador intercambia una de las carta
 Para estos algoritmos también se han desarrollado varios juegos como ejemplos de uso de esta librería, aunque ambos algoritmos se pueden usar en todos los juegos de información imperfecta, se ha diferenciado entre juegos para el SO y el MO, para el primero se ha creado la escoba, el Stratego y el BlackJack, para el segundo se ha creado el Holjjak (Juego de adivinar las canicas del rival) y el Phantom (Especie de 4 en raya, pero con los movimientos en secreto).
 
 ## Manual de Uso
-Lo primero de todo, se debe importar la librería en el archivo de python del juego al que queremos implementarla, es imprescindible que haya una clase que guarde la información necesaria sobre el estado del juego, además esta clase deberá implementar los siguientes métodos (puedes llamar a estos métodos de forma diferente a lo que se muestra, pero deben contener las mismas variables):
+Lo primero de todo, se debe importar la librería en el archivo de python del juego al que queremos implementarla.
+
+**import pyplAI;**
+
+Para poder usar esta biblioteca es imprescindible que haya una clase que guarde la información necesaria sobre el estado del juego, además esta clase deberá implementar los siguientes métodos (puedes llamar a estos métodos de forma diferente a lo que se muestra, pero deben recibir los mismos parámetros):
 
 ### Métodos Generales
 
@@ -68,17 +74,17 @@ Este atributo debe ser un valor numérico y debe contener el jugador el cual le 
 
 ### Creación Objeto
 
-Una vez tengamos todos estos métodos solamente debemos llamar a la librería y el algoritmo que deseamos utilizar, a esta llamada le pasaremos los métodos necesarios para el uso de este algoritmo, el número de jugadores del juego y el tiempo de ejecución en segundos para los algoritmos de MCTS y la profundidad de búsqueda para MinMax, todo esto en el orden indicado que veremos a continuación:
+Una vez tengamos todos estos métodos solamente debemos llamar a la librería y el algoritmo que deseamos utilizar, a esta llamada le pasaremos como parámetros los métodos necesarios para el uso de este algoritmo, el número de jugadores del juego y el tiempo de ejecución en segundos para los algoritmos de MCTS y la profundidad de búsqueda para MinMax, todo esto en el orden indicado que veremos a continuación:
 
 Juego será el nombre de la clase la cual contiene los métodos y el estado de la partida, incluido el atributo jugadorActual.
 
 **•	MCTS:**
 
-numeroJugadores = int (Número de jugadores de la partida)
+**numeroJugadores** = int (Número de jugadores de la partida)
 
-tiempoEjecucion = int (Segundos de computación del algoritmo)
+**tiempoEjecucion** = int (Segundos de computación del algoritmo)
 
-mcts = Algoritmos.MCTS(Juego.aplica_movimiento,
+**mcts** = **pyplAI.MCTS**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
@@ -87,11 +93,11 @@ tiempoEjecucion)
 
 **•	MinMax:**
 
-numeroJugadores = int (Número de jugadores de la partida)
+**numeroJugadores** = int (Número de jugadores de la partida)
 
-depth = int (Profundidad de jugadas calculadas por el algoritmo)
+**depth** = int (Profundidad de jugadas calculadas por el algoritmo)
 
-minmax = Algoritmos.MCTS(Juego.aplica_movimiento,
+**minmax** = **pyplAI.MCTS**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
@@ -101,11 +107,11 @@ depth)
 
 **•	SO-ISMCTS:**
 
-numeroJugadores = int (Número de jugadores de la partida)
+**numeroJugadores** = int (Número de jugadores de la partida)
 
-tiempoEjecucion = int (Segundos de computación del algoritmo)
+**tiempoEjecucion** = int (Segundos de computación del algoritmo)
 
-so_ismcts = Algoritmos.MCTS(Juego.aplica_movimiento,
+**so_ismcts** = **pyplAI.MCTS**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
@@ -115,11 +121,11 @@ tiempoEjecucion)
 
 **•	MO-ISMCTS:**
 
-numeroJugadores = int (Número de jugadores de la partida)
+**numeroJugadores** = int (Número de jugadores de la partida)
 
-tiempoEjecucion = int (Segundos de computación del algoritmo)
+**tiempoEjecucion** = int (Segundos de computación del algoritmo)
 
-mo_ismcts = Algoritmos.MCTS(Juego.aplica_movimiento,
+**mo_ismcts** = **pyplAI.MCTS**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
@@ -128,13 +134,23 @@ Juego.accion_visible,
 numeroJugadores, 
 tiempoEjecucion)
 
-Además, si en la creación del objeto añadimos un True como última variable, cuando hagamos uso de este, nos mostrará información útil sobre la ejecución del algoritmo, como por ejemplo, tiempo de ejecución, número de nodos creados y demás características propias de cada uno de los algoritmos.
+**•	Modo "verbose":**
+
+Si se desean ver detalles cuando ejecutemos el algoritmo, se debe añadir un **True** como **último parámetro** en la creación del objeto, esto nos mostrará información útil del algoritmo, como por ejemplo, tiempo de ejecución, número de nodos creados y demás características propias de cada uno de los algoritmos. Un ejemplo de como quedaría la creación del algoritmo de MCTS con este parámetro extra quedaría así:
+
+**mcts** = **pyplAI.MCTS**(Juego.aplica_movimiento,
+Juego.obtiene_movimientos, 
+Juego.es_estado_final, 
+Juego.gana_jugador, 
+numeroJugadores, 
+tiempoEjecucion,
+True)
 
 ### Llamada Objeto
 
 Una vez ya tengamos el objeto del algoritmo que queramos utilizar solamente debemos llamar a su método **ejecuta** y pasarle el objeto de la partida con el estado actual, esto devolverá el movimiento óptimo que calcule en el tiempo de computación dado o la profundidad en el caso del minmax. Un ejemplo para el algoritmo de mcts sería así:
 
-movimiento = mcts.ejecuta(juego)
+movimiento = **mcts.ejecuta**(juego)
 
 Con este movimiento podemos continuar la partida aplicándolo y actualizando el estado de esta:
 
@@ -142,9 +158,9 @@ juego = juego.aplica_movimiento(movimiento)
 
 Estas dos líneas nos jugarían un turno completo, obteniendo un movimiento y aplicandolo al estado de la partida.
 
-En caso de que el estado de la partida no tenga ningún movimiento posible para aplicar, los algoritmos devolverán None, y si solo hay un posible movimiento para aplicar, para ahorrar cálculos innecesarios, se devolverá el único movimiento posible directamente.
+En caso de que el estado de la partida no tenga ningún movimiento posible para aplicar, los algoritmos devolverán **None**, y si solo hay un posible movimiento para aplicar, para ahorrar cálculos innecesarios, se devolverá el único movimiento posible directamente.
 
-Si se tienen dudas sobre como integrar la librería a vuestros propios juegos, se recomienda ver los ejemplos con los diferentes juegos desarrollados.
+Si se tienen dudas sobre como integrar la biblioteca a vuestros propios juegos, se recomienda ver los juegos del repositorio de GitHub como ejemplos de uso de la biblioteca, aquí se incluyen distintos tipos de juegos para poder ver múltiples ejemplos de implementaciones para cada uno de los algoritmos disponibles en la biblioteca.
 
 ## Contacto
 
