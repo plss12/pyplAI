@@ -97,7 +97,7 @@ tiempoEjecucion)
 
 **depth** = int (Profundidad de jugadas calculadas por el algoritmo)
 
-**minmax** = **pyplAI.MCTS**(Juego.aplica_movimiento,
+**minmax** = **pyplAI.Minimax**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
@@ -111,7 +111,7 @@ depth)
 
 **tiempoEjecucion** = int (Segundos de computación del algoritmo)
 
-**so_ismcts** = **pyplAI.MCTS**(Juego.aplica_movimiento,
+**so_ismcts** = **pyplAI.SOISMCTS**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
@@ -125,7 +125,7 @@ tiempoEjecucion)
 
 **tiempoEjecucion** = int (Segundos de computación del algoritmo)
 
-**mo_ismcts** = **pyplAI.MCTS**(Juego.aplica_movimiento,
+**mo_ismcts** = **pyplAI.MOISMCTS**(Juego.aplica_movimiento,
 Juego.obtiene_movimientos, 
 Juego.es_estado_final, 
 Juego.gana_jugador, 
