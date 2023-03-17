@@ -5,7 +5,7 @@ Esta biblioteca para Python es el resultado final de un Trabajo de Fin de Grado 
 
 ### Juegos de Información Perfecta
 
-Para este tipo de juegos se han implementado los algoritmos de MCTS con UCT [[1]](#MCTS) y minimax con la técnica de poda de alfa-beta [[2]](#Minimax)]. Además, como ejemplos para ver el correcto uso de la biblioteca, se han creado diferentes juegos de mesa, entre ellos, *TicTacToe* (3 en raya), *Ultimate TicTacToe* [[3]](#UltimateTicTacToe) y *las damas*.
+Para este tipo de juegos se han implementado los algoritmos de MCTS con UCT [[1]](#MCTS) y minimax con la técnica de poda de alfa-beta [[2]](#Minimax). Además, como ejemplos para ver el correcto uso de la biblioteca, se han creado diferentes juegos de mesa, entre ellos, *TicTacToe* (3 en raya), *Ultimate TicTacToe* [[3]](#UltimateTicTacToe) y *las damas*.
 
 ### Juegos de Información Imperfecta
 
@@ -271,7 +271,7 @@ Una vez tengamos el objeto del algoritmo que se quiere utilizar solamente se deb
 
 En caso de que el estado del juego no tenga ningún movimiento posible para aplicar los algoritmos devolverán *None*, y si solo hay un posible movimiento para aplicar, para ahorrar cálculos innecesarios, se devolverá el único movimiento posible.
 
-Si se tienen dudas sobre como integrar la biblioteca a juegos propios se recomienda ver los juegos del repositorio de *GitHub* [(*pyplAI*)](https://github.com/plss12/pyplAI) como ejemplos de uso. Este repositorio contiene la biblioteca y todos los juegos nombrados en la introducción de este manual, incluyendo las implementaciones de los algoritmos correspondientes con cada uno de ellos.
+Si se tienen dudas sobre como integrar la biblioteca a juegos propios se recomienda ver los juegos del repositorio de *GitHub* ([*pyplAI*](https://github.com/plss12/pyplAI)) como ejemplos de uso. Este repositorio contiene la biblioteca y todos los juegos nombrados en la introducción de este manual, incluyendo las implementaciones de los algoritmos correspondientes con cada uno de ellos.
 
 ## Contacto
 
