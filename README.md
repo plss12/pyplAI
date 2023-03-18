@@ -142,7 +142,7 @@ Con esta información, este método debe dar un estado del juego en el que aleat
 
 ### Métodos MO-ISMCTS
 
-Además, para el funcionamiento del algoritmo \textit{MO-ISMCTS} se necesitará otro método adicional:
+Además, para el funcionamiento del algoritmo *MO-ISMCTS* se necesitará otro método adicional:
 
 **•	es_movimiento_visible(movimiento):** Este método, dado un movimiento, devuelve *True* si es un movimiento visible para los rivales, o *False* en caso contrario.
 
@@ -192,9 +192,9 @@ Una vez tengamos todos estos métodos solamente debemos llamar a la biblioteca y
 
 **•	tiempoEjecucion:** Este argumento es común para todos los algoritmos de Monte Carlo, ya que, estos algoritmos necesitan un tiempo límite de ejecución antes de devolver el mejor movimiento encontrado. Este argumento debe ser un número real mayor que cero y representa el tiempo de ejecución en segundos.
 
-**•	profundidadBusqueda:** Este argumento solo es necesario en la llamada al constructor del algoritmo de \textit{minimax}, y sirve para limitar la profundidad en el árbol de búsqueda. Este argumento debe ser un número entero mayor que cero.
+**•	profundidadBusqueda:** Este argumento solo es necesario en la llamada al constructor del algoritmo de *minimax*, y sirve para limitar la profundidad en el árbol de búsqueda. Este argumento debe ser un número entero mayor que cero.
 
-Sabiendo todo esto ya podemos ver como se deben hacer las llamadas a la biblioteca y los constructores para cada uno de los tipos de algoritmos. Es muy importante que se siga el orden mostrado en los argumentos de entrada. Además, recordar que \textit{Juego} es la clase de ejemplo que contiene la información sobre el estado del juego, como el atributo \textit{jugadorActual}, y los métodos explicados anteriormente.
+Sabiendo todo esto ya podemos ver como se deben hacer las llamadas a la biblioteca y los constructores para cada uno de los tipos de algoritmos. Es muy importante que se siga el orden mostrado en los argumentos de entrada. Además, recordar que *Juego* es la clase de ejemplo que contiene la información sobre el estado del juego, como el atributo *jugadorActual*, y los métodos explicados anteriormente.
 
 **•	MCTS:**
 
