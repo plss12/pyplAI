@@ -16,7 +16,13 @@ Un ejemplo serían los juegos en los que un jugador intercambia una de las carta
 Para estos algoritmos también se han desarrollado varios juegos como ejemplos de uso de la biblioteca, aunque ambos algoritmos se pueden usar en todos los juegos de información imperfecta, se ha diferenciado entre juegos para el SO-ISMCTS y el MO-ISMCTS. Para el primer algoritmo se ha creado *el juego de la escoba*, *el Stratego* y *el blackJack*, y para el segundo se ha desarrollado *el holjjak* (juego de adivinar las canicas del rival) y *el phantom* (variante del 4 en raya en el que no se ven los movimientos del rival).
 
 ## Manual de Uso
-El primer paso necesario para poder usar esta biblioteca es descargarla. Se puede descargar la biblioteca desde la consola usando el comando \textit{pip install pyplAI}. Tras esto, ya se puede importar en el archivo de Python del juego al que queramos implementarla.
+El primer paso necesario para poder usar esta biblioteca es descargarla. Se puede descargar la biblioteca desde la consola usando el comando: 
+
+``` python
+pip install pyplAI
+```
+
+Tras esto, ya se puede importar en el archivo de Python del juego al que queramos implementarla.
 
 ``` python
 import pyplAI
