@@ -208,10 +208,10 @@ Sabiendo todo esto ya podemos ver como se deben hacer las llamadas a la bibliote
          tiempoEjecucion)
 ```
 
-**•	MinMax:**
+**•	Minimax:**
 
 ``` python
-  minmax = pyplAI.Minimax(
+  minimax = pyplAI.Minimax(
            Juego.aplica_movimiento,
            Juego.obtiene_movimientos, 
            Juego.es_estado_final, 
