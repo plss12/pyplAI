@@ -166,7 +166,7 @@ Por ejemplo, un movimiento visible para los rivales sería jugar una carta de tu
 
 En el caso del algoritmo de *minimax*, además de los 4 métodos generales, se necesita un método que devuelva una heurística sobre el estado del juego, es decir, que evalúe su estado para saber como de bueno es desde el punto de vista de un jugador dado:
 
-**•	heuristica(self, jugador):** Este método debe devolver un número entero que refleje una evaluación sobre como de bueno es el estado para el jugador dado. Esta evaluación debe ser mayor cuanto mejor sea el estado del juego para el jugador dado.
+**•	heuristica(self, jugador):** Este método debe devolver un número entero que refleje una evaluación sobre como de bueno es el estado del juego para un jugador dado. Esta evaluación debe ser mayor cuanto mejor sea el estado del juego para este jugador.
 
 ``` python
   class Juego:
