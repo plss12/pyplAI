@@ -286,7 +286,7 @@ def jugadorContraAlgoritmo():
         depth = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth<=0):
             depth = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo = pyplAI.MinMax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth)
+        algoritmo = pyplAI.Minimax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth)
     else:
         tiempoEjecucion = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion<=0):
@@ -324,7 +324,7 @@ def algoritmoContraAlgoritmo():
         depth1 = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth1<=0):
             depth1 = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo1 = pyplAI.MinMax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth1)
+        algoritmo1 = pyplAI.Minimax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth1)
     else:
         tiempoEjecucion1 = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion1<=0):
@@ -339,7 +339,7 @@ def algoritmoContraAlgoritmo():
         depth2 = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth2<=0):
             depth2 = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo2 = pyplAI.MinMax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth2)
+        algoritmo2 = pyplAI.Minimax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth2)
     else:
         tiempoEjecucion2 = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion2<=0):

@@ -545,7 +545,7 @@ def jugadorContraAlgoritmo():
         depth = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth<=0):
             depth = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo = pyplAI.MinMax(Damas.aplica_movimiento,Damas.obtiene_movimientos,Damas.es_estado_final,Damas.gana_jugador,Damas.heuristica, Damas.jugadores, depth, True)
+        algoritmo = pyplAI.Minimax(Damas.aplica_movimiento,Damas.obtiene_movimientos,Damas.es_estado_final,Damas.gana_jugador,Damas.heuristica, Damas.jugadores, depth, True)
     else:
         tiempoEjecucion = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion<=0):
@@ -591,7 +591,7 @@ def algoritmoContraAlgoritmo():
         depth1 = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth1<=0):
             depth1 = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo1 = pyplAI.MinMax(Damas.aplica_movimiento,Damas.obtiene_movimientos,Damas.es_estado_final,Damas.gana_jugador,Damas.heuristica, Damas.jugadores, depth1, True)
+        algoritmo1 = pyplAI.Minimax(Damas.aplica_movimiento,Damas.obtiene_movimientos,Damas.es_estado_final,Damas.gana_jugador,Damas.heuristica, Damas.jugadores, depth1, True)
     else:
         tiempoEjecucion1 = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion1<=0):
@@ -606,7 +606,7 @@ def algoritmoContraAlgoritmo():
         depth2 = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth2<=0):
             depth2 = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo2 = pyplAI.MinMax(Damas.aplica_movimiento,Damas.obtiene_movimientos,Damas.es_estado_final,Damas.gana_jugador,Damas.heuristica, Damas.jugadores, depth2, True)
+        algoritmo2 = pyplAI.Minimax(Damas.aplica_movimiento,Damas.obtiene_movimientos,Damas.es_estado_final,Damas.gana_jugador,Damas.heuristica, Damas.jugadores, depth2, True)
     else:
         tiempoEjecucion2 = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion2<=0):
