@@ -136,7 +136,7 @@ class MCTS:
                 v.q[jugadores.index(jugador)]+=delta[jugadores.index(jugador)]
             v = v.padre
 
-class MinMax:
+class Minimax:
     def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, heuristica, numeroJugadores, profundidadBusqueda, estadisticas=True):
         self.aplicar_movimiento = staticmethod(aplicar_movimiento)
         self.obtener_movimientos = staticmethod(obtener_movimientos)
