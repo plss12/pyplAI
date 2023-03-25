@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = "1.0"
+VERSION = "1.0.2"
 NAME = "pyplAI"
 DESCRIPTION = "Biblioteca para Python con algoritmos de resolución de juegos de mesa (minimax, MCTS, SO-ISMCTS y MO-ISMCTS)"
 LONG_DESCRIPTION = (HERE / "README.md").read_text(encoding='utf-8')

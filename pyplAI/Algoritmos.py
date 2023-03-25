@@ -120,11 +120,10 @@ class MCTS:
         for jugador in jugadores:
             if(self.gana_jugador(s,jugador)):
                 res[jugadores.index(jugador)]=1
-        #Si hay algún ganador, los demás jugadores pierden
-        if (1 in res):
-            for i in range(len(res)):
-                if(res[i]==0):
-                    res[i]=-1
+
+        #Si no hay ningún ganador, todos los jugadores empatan
+        if (1 not in res):
+            res = [0.5] * len(jugadores)
         return res
 
     @staticmethod
