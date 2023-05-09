@@ -275,7 +275,7 @@ def ISMCTSContraAleatorio():
     if(modo==1):
         mcts=pyplAI.SOISMCTS(Phantom.aplica_movimiento,Phantom.obtiene_movimientos,Phantom.es_estado_final,Phantom.gana_jugador,Phantom.determinization,Phantom.jugadores,tiempoEjecucion, True)
     else:
-        mcts=pyplAI.MOISMCTS(Phantom.aplica_movimiento,Phantom.obtiene_movimientos,Phantom.es_estado_final,Phantom.gana_jugador,Phantom.determinization,Phantom.jugadores,tiempoEjecucion, True)
+        mcts=pyplAI.MOISMCTS(Phantom.aplica_movimiento,Phantom.obtiene_movimientos,Phantom.es_estado_final,Phantom.gana_jugador,Phantom.determinization,Phantom.accion_visible,Phantom.jugadores,tiempoEjecucion, True)
     
     resultados=[]
     i=0

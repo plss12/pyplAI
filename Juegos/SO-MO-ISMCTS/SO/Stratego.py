@@ -445,14 +445,17 @@ class Stratego:
                 print("Gana el jugador 1 por falta de movimientos del rival")
             else:
                 print("Gana el jugador 1 por capturar la bandera")
+            return 1
         elif(self.gana_jugador(2)):
             if(numero_movs==0):
                 print("Gana el jugador 2 por falta de movimientos del rival")
             else:
                 print("Gana el jugador 2 por capturar la bandera")
+            return 2
         else:
             print("Empate")
-    
+            return 0
+
     def imprime_movimientos(self,movs):
         i=1
         tablero=self.tablero
@@ -645,12 +648,12 @@ class Cromosoma:
         segundaFila=self.genes[10:20]
         terceraFila=self.genes[20:30]
         posicionFichasGen=[primerFila,segundaFila,terceraFila]
-        for _ in range(50):
+        for _ in range(15):
             partida = Stratego(100,posicionFichasGen,None)
             movs=partida.obtiene_movimientos()
             recompensa=self.simulate(partida,movs)
             res+=recompensa[0]
-        for _ in range(50):
+        for _ in range(15):
             partida = Stratego(100,None,posicionFichasGen)
             movs=partida.obtiene_movimientos()
             recompensa=self.simulate(partida,movs)
@@ -754,7 +757,7 @@ class AlgoritmoGenetico:
             cromosomasPorCruzar+=1
         cromosomasSinCruzar = self.numeroPoblacion-cromosomasPorCruzar
         for _ in range(self.numeroGeneraciones):
-            Poblacion.prepararPoblacion(poblacion)
+            poblacion.prepararPoblacion()
             p1=poblacion.seleccionaVarios(cromosomasPorCruzar)
             p2=poblacion.seleccionaVarios(cromosomasSinCruzar)
             random.shuffle(p1)
@@ -767,6 +770,13 @@ class AlgoritmoGenetico:
                 cromosoma.muta(self.probabilidadMutacion)
                 cromosoma.evalua()
             poblacion=Poblacion(p4)
+            print("Generación: ",_+1)
+            listaFitness = list(map(lambda x: x.fitness,poblacion.poblacion))
+            listaFitness.sort(reverse=True)
+            print("Mejor fitness: ",listaFitness[:5])
+        return poblacion
+
+    def obtieneMejor(self,poblacion):
         mejor = max(poblacion.poblacion,key=lambda x: x.fitness)
         fila1=mejor.genes[:10]
         fila2=mejor.genes[10:20]
@@ -777,12 +787,16 @@ class AlgoritmoGenetico:
         self.mejorPoblacion = poblacion
         return mejor
 
-def guardar_mejor_gen(gen,fitness):
+def guardar_poblacion(poblacion):
     f = open("Stratego.txt","a")
-    genStr = str(gen)
-    genLimpio = genStr[1:-1]
-    gen = genLimpio+" ; "+str(fitness)+"\n"
-    f.write(gen)
+    #Obtener los mejores 20 cromosomas
+    poblacion.poblacion.sort(key=lambda x: x.fitness,reverse=True)
+    mejoresCromo=poblacion.poblacion=poblacion.poblacion[:20]
+    for cromosoma in mejoresCromo:
+        genStr = str(cromosoma.genes)
+        genLimpio = genStr[1:-1]
+        gen = genLimpio+" ; "+str(cromosoma.fitness)+"\n"
+        f.write(gen)
     f.close()
 
 def cargar_genes():
@@ -824,22 +838,15 @@ def algoritmoGenetico():
     while(numPoblacion<1):
         numPoblacion = int(input("Introduce un número de individuos mayor que 1: "))
 
-    maxFitness = 0
-    i=0
-    probabilidadMutacion = 0.5
-    probabilidadCruce = 0.1
-    while(i<numGeneraciones):
-        t0 = time.time()
-        algoritmo=AlgoritmoGenetico(probabilidadCruce, probabilidadMutacion, numPoblacion, 1)
-        mejor=algoritmo.ejecuta()
-        t1 = time.time()
-        print("Generación número: ",i)
-        print("Tiempo de ejecución: ",t1-t0)
-        print("Mejor fitness de la generación:" +str(mejor.fitness))
-        if(mejor.fitness>maxFitness):
-            maxFitness=mejor.fitness
-            guardar_mejor_gen(mejor.genes,mejor.fitness)
-        i+=1
+    probabilidadMutacion = 0.2
+    proporcionCruce = 0.6
+    t0 = time.time()
+    algoritmo=AlgoritmoGenetico(proporcionCruce, probabilidadMutacion, numPoblacion, numGeneraciones)
+    mejorPoblación=algoritmo.ejecuta()
+    t1 = time.time()
+    print("Tiempo de ejecución: ",t1-t0)
+    guardar_poblacion(mejorPoblación)
+
 
 def jugadorContraSOISMCTS():
     tiempoEjecucion = float(input("Introduce el tiempo de ejecución del SOISMCTS en segundos: \n"))
@@ -955,18 +962,30 @@ def SOISMCTSContraAleatorio():
         print("El número de turnos debe ser mayor que 0")
         turnos = int(input("Introduce el número de turnos (Se recomiendan unos 200): \n"))
     
-    fichasSOISMCTS=posicionFichasAlgoritmoGenetico()
-    estado = Stratego(turnos,fichasSOISMCTS)
+    numeroPartidas=int(input("Introduce el número de partidas que quieres simular: \n"))
+    while(numeroPartidas<=0):
+        numeroPartidas = int(input("Introduce un número de partidas mayor que 0: \n"))
     
-    while(estado.es_estado_final()==False):
-        jugador = estado.jugadorActual
-        if(jugador==1):
-            print("\nTurno del jugador aleatorio")
-            estado = estado.turno_prueba()
-        else:
-            print("\nTurno del SOISMCTS")
-            estado=estado.turno_mcts(mcts)
-    estado.imprime_final()
+    resultados = []
+    i=0
+    while(i<numeroPartidas):    
+        fichasSOISMCTS=posicionFichasAlgoritmoGenetico()
+        estado = Stratego(turnos,fichasSOISMCTS)
+        
+        while(estado.es_estado_final()==False):
+            jugador = estado.jugadorActual
+            if(jugador==1):
+                print("\nTurno del jugador aleatorio")
+                estado = estado.turno_prueba()
+            else:
+                print("\nTurno del SOISMCTS")
+                estado=estado.turno_mcts(mcts)
+        res = estado.imprime_final()
+        resultados.append(res)
+        i+=1
+    print("\nPartidas Ganadas por los SO-ISMCTS: ", resultados.count(1))
+    print("Partidas Ganadas por los jugadores aleatorio: ", resultados.count(2))
+    print("Partidas empatadas: ",resultados.count(0))
 
 def partida():
     print("\nEstas son las diferentes tipos de partidas:\n")

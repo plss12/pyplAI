@@ -1,6 +1,7 @@
 import random
 import pyplAI
 from colorama import Fore, init
+import time
 
 init(autoreset=True)
 
@@ -386,7 +387,8 @@ def algoritmoContraAleatorio():
         depth = int(input("Introduce la profundidad del Minimax: \n"))
         while(depth<=0):
             depth = int(input("Introduce una profundidad mayor que 0: \n"))
-        algoritmo = pyplAI.MinMax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth)
+        algoritmo = pyplAI.Minimax(UltimateTTT.aplica_movimiento,UltimateTTT.obtiene_movimientos,UltimateTTT.es_estado_final,UltimateTTT.gana_jugador,UltimateTTT.heuristica, UltimateTTT.jugadores, depth)
+        tiempos = []
     else:
         tiempoEjecucion = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion<=0):
@@ -407,7 +409,10 @@ def algoritmoContraAleatorio():
                 if(algoritmo.__class__.__name__=="MCTS"):
                     s = s.turno_mcts(algoritmo)
                 else:
+                    t0 = time.time()
                     s=s.turno_minimax(algoritmo)
+                    t1 = time.time()
+                    tiempos.append(t1-t0)
             else:
                 s = s.turno_aleatorio()
         res=s.imprime_final()
@@ -417,6 +422,7 @@ def algoritmoContraAleatorio():
         print("\nPartidas Ganadas por el MCTS: ",resultados.count(1))
     else:
         print("\nPartidas Ganadas por el Minimax: ",resultados.count(1))
+        print("Tiempo medio de ejecución del Minimax: ",sum(tiempos)/len(tiempos))
     print("Partidas Ganadas por el jugador aleatorio: ",resultados.count(2))
     print("Empates: ",resultados.count(0))
 

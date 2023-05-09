@@ -84,7 +84,7 @@ class Baraja:
 
 class BlackJack:
     jugadores = [1,2]
-    numMazos = 1
+    numMazos = 4
 
     def crearBaraja(mazos):
         bar=Baraja()

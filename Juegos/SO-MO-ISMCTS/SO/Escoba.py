@@ -453,42 +453,82 @@ def jugadorContraJugador():
         estado.ronda()
     estado.finalPartida()
 
-def SOISMCTSContraSOISMCTS():
-    tiempoEjecucion = float(input("Introduce el tiempo de ejecución del SOISMCTS en segundos: \n"))
+def SOISMCTSContraAleatorios():
+    tiempoEjecucion = float(input("Introduce el tiempo de ejecución de los SOISMCTS en segundos: \n"))
     while(tiempoEjecucion<=0):
         tiempoEjecucion = float(input("Introduce un tiempo de ejecución mayor que 0: \n"))
-    numeroJugadores = 2
+
+    numeroPartidas=int(input("Introduce el número de partidas que quieres simular: \n"))
+    while(numeroPartidas<=0):
+        numeroPartidas = int(input("Introduce un número de partidas mayor que 0: \n"))
+
+    numeroJugadores = 4
     mcts = pyplAI.SOISMCTS(Escoba.aplicarMovimiento,Escoba.obtieneMovimientos,Escoba.esEstadoFinal,Escoba.ganaJugador,Escoba.determinization,numeroJugadores,tiempoEjecucion, True)
     
-    estado=Escoba(numeroJugadores,True)
-    
-    while(estado.esEstadoFinal()==False):
-        estado.rondaMCTS(mcts)
-    estado.finalPartida()
+    resultados = []
+    i=0
+    while(i<numeroPartidas):
+        estado=Escoba(numeroJugadores,True)
+        
+        while(estado.esEstadoFinal()==False):
+            jugador = estado.jugadorActual
+            if(jugador==1 or jugador==3):
+                estado.rondaMCTS(mcts)
+            else:
+                estado.rondaPrueba()
+        res = estado.finalPartida()
+        ganadoresAle= res.count(2)+res.count(4)
+        ganadoresMCTS= res.count(1)+res.count(3)
+        if(ganadoresAle>ganadoresMCTS):
+            resultados.append(2)
+        elif(ganadoresAle<ganadoresMCTS):
+            resultados.append(1)
+        else:
+            resultados.append(0)
+        i+=1
+    print("\nPartidas Ganadas por los SO-ISMCTS: ", resultados.count(1))
+    print("Partidas Ganadas por los jugadores aleatorio: ", resultados.count(2))
+    print("Partidas empatadas: ",resultados.count(0))
 
 def SOISMCTSContraAleatorio():
     tiempoEjecucion = float(input("Introduce el tiempo de ejecución del SOISMCTS en segundos: \n"))
     while(tiempoEjecucion<=0):
         tiempoEjecucion = float(input("Introduce un tiempo de ejecución mayor que 0: \n"))
+
+    numeroPartidas=int(input("Introduce el número de partidas que quieres simular: \n"))
+    while(numeroPartidas<=0):
+        numeroPartidas = int(input("Introduce un número de partidas mayor que 0: \n"))
+
     numeroJugadores = 2
     mcts = pyplAI.SOISMCTS(Escoba.aplicarMovimiento,Escoba.obtieneMovimientos,Escoba.esEstadoFinal,Escoba.ganaJugador,Escoba.determinization,numeroJugadores,tiempoEjecucion, True)
     
-    estado=Escoba(numeroJugadores,True)
-    
-    while(estado.esEstadoFinal()==False):
-        jugador=estado.jugadorActual
-        if(jugador==1):
-            estado.rondaMCTS(mcts)
+    resultados = []
+    i=0
+    while(i<numeroPartidas):
+        estado=Escoba(numeroJugadores,True)
+        
+        while(estado.esEstadoFinal()==False):
+            jugador=estado.jugadorActual
+            if(jugador==1):
+                estado.rondaMCTS(mcts)
+            else:
+                estado.rondaPrueba()
+        res = estado.finalPartida()
+        if(len(res)==2):
+            resultados.append(0)
         else:
-            estado.rondaPrueba()
-    estado.finalPartida()
+            resultados.append(res[0])
+        i+=1
+    print("\nPartidas Ganadas por el SO-ISMCTS: ",resultados.count(1))
+    print("Partidas Ganadas por el jugador aleatorio: ",resultados.count(2))
+    print("Partidas empatadas: ",resultados.count(0))
 
 def main():
     print("\nBienvenido al juego de la Escoba\n")
     print("Estos son los modos que contiene este juego:\n")
     print("1. Jugar una partida contra SOISMCTS")
     print("2. Jugar una partida contra otros jugadores")
-    print("3. Simular partida SOISMCTS contra SOISMCTS")
+    print("3. Simular partidas con 2 SOISMCTS y 2 aleatorios")
     print("4. Simular partidas SOISMCTS contra jugadas aleatorias")
     opcion=int(input("\nElige un modo: \n"))
     while(opcion<1 or opcion>4):
@@ -498,7 +538,7 @@ def main():
     elif(opcion==2):
         jugadorContraJugador()
     elif(opcion==3):
-        SOISMCTSContraSOISMCTS()
+        SOISMCTSContraAleatorios()
     elif(opcion==4):
         SOISMCTSContraAleatorio()
         

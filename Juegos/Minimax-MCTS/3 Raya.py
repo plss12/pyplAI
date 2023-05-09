@@ -1,5 +1,6 @@
 from copy import deepcopy
 import random
+import time
 import pyplAI
 from colorama import Fore, init
 
@@ -263,6 +264,7 @@ def algoritmoContraAleatorio():
         while(depth<=0):
             depth = int(input("Introduce una profundidad mayor que 0: \n"))
         algoritmo = pyplAI.Minimax(TicTacToe.aplica_movimiento,TicTacToe.obtiene_movimientos,TicTacToe.es_estado_final,TicTacToe.gana_jugador,TicTacToe.heuristica, TicTacToe.jugadores, depth, True)
+        tiempos = []    
     else:
         tiempoEjecucion = float(input("Introduce el tiempo de ejecución del MCTS en segundos: \n"))
         while(tiempoEjecucion<=0):
@@ -283,7 +285,10 @@ def algoritmoContraAleatorio():
                 if(algoritmo.__class__.__name__=="MCTS"):
                     s = s.turno_mcts(algoritmo)
                 else:
+                    t0 = time.time()
                     s=s.turno_minimax(algoritmo)
+                    t1 = time.time()
+                    tiempos.append(t1-t0)
             else:
                 s = s.turno_aleatorio()
         res=s.imprime_final()
@@ -293,6 +298,7 @@ def algoritmoContraAleatorio():
         print("\nPartidas Ganadas por el MCTS: ",resultados.count(1))
     else:
         print("\nPartidas Ganadas por el Minimax: ",resultados.count(1))
+        print("Tiempo medio de ejecución del Minimax: ",sum(tiempos)/len(tiempos))
     print("Partidas Ganadas por el jugador aleatorio: ",resultados.count(2))
     print("Empates: ",resultados.count(0))
 
