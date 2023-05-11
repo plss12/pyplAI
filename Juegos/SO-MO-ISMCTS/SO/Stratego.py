@@ -936,19 +936,30 @@ def SOISMCTSContraSOISMCTS():
         print("El número de turnos debe ser mayor que 0")
         turnos = int(input("Introduce el número de turnos (Se recomiendan unos 200): \n"))
 
-    fichasSOISMCTS1=posicionFichasAlgoritmoGenetico()
-    fichasSOISMCTS2=posicionFichasAlgoritmoGenetico()
+    numeroPartidas=int(input("Introduce el número de partidas que quieres simular: \n"))
+    while(numeroPartidas<=0):
+        numeroPartidas = int(input("Introduce un número de partidas mayor que 0: \n"))
+    
+    resultados = []
+    i=0
+    while(i<numeroPartidas):    
+        fichasSOISMCTS1=posicionFichasAlgoritmoGenetico()
 
-    estado = Stratego(turnos,fichasSOISMCTS1,fichasSOISMCTS2)
-   
-    while(estado.es_estado_final()==False):
-        jugador = estado.jugadorActual
-        if(jugador==1):
-            print("\nTurno del SOISMCTS 1")
-        else:
-            print("\nTurno del SOISMCTS 2")
-        estado=estado.turno_mcts(mcts)
-    estado.imprime_final()
+        estado = Stratego(turnos,fichasSOISMCTS1)
+    
+        while(estado.es_estado_final()==False):
+            jugador = estado.jugadorActual
+            if(jugador==1):
+                print("\nTurno del SOISMCTS 1")
+            else:
+                print("\nTurno del SOISMCTS 2")
+            estado=estado.turno_mcts(mcts)
+        res = estado.imprime_final()
+        resultados.append(res)
+        i+=1
+    print("\nPartidas Ganadas por SO-ISMCTS + Congiguración Inicial de Algoritmo Genético: ", resultados.count(1))
+    print("Partidas Ganadas por SO-ISMCTS + Congiguración Inicial Aleatoria: ", resultados.count(2))
+    print("Partidas empatadas: ",resultados.count(0))
 
 def SOISMCTSContraAleatorio():
     tiempoEjecucion = float(input("Introduce el tiempo de ejecución del SOISMCTS en segundos: \n"))
@@ -975,11 +986,11 @@ def SOISMCTSContraAleatorio():
         while(estado.es_estado_final()==False):
             jugador = estado.jugadorActual
             if(jugador==1):
-                print("\nTurno del jugador aleatorio")
-                estado = estado.turno_prueba()
-            else:
                 print("\nTurno del SOISMCTS")
                 estado=estado.turno_mcts(mcts)
+            else:
+                print("\nTurno del jugador aleatorio")
+                estado = estado.turno_prueba()
         res = estado.imprime_final()
         resultados.append(res)
         i+=1
@@ -991,7 +1002,7 @@ def partida():
     print("\nEstas son las diferentes tipos de partidas:\n")
     print("1. Jugar una partida contra SOISMCTS")
     print("2. Jugar una partida contra otro jugador")
-    print("3. Simular partida SOISMCTS contra SOISMCTS")
+    print("3. Simular partida entre SOISMCTS + Configuración Inicial Algoritmo Genético contra SOISMCTS + Configuración Inicial Aleatoria")
     print("4. Simular partidas SOISMCTS contra jugadas aleatorias")
     opcion=int(input("\nElige un modo: \n"))
     while(opcion<1 or opcion>4):
