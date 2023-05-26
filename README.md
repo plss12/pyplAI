@@ -1,19 +1,19 @@
 # pyplAI
 
 ## Introducción
-Esta biblioteca para Python es el resultado final de un Trabajo de Fin de Grado centrado en la implementación de algoritmos de *Monte Carlo Tree Search* (MCTS) y *minimax* para diferentes tipos de juegos de mesa, entre ellos, según clasifica la teoría de juegos, los juegos de información perfecta, como lo son *el ajedrez* o *las damas*, en los que en todo momento cualquier jugador puede ver toda la información del juego, como los posibles movimientos del rival, y juegos de información imperfecta, como lo son la mayoría de juegos de cartas como por ejemplo *el Uno* o *la brisca*, en el que los jugadores solo conocen información propia, como sus cartas, o información general del juego, como el estado de la mesa, pero desconocen la información del rival, como las cartas de los demás jugadores.
+Esta biblioteca para *Python* es el resultado final de un Trabajo de Fin de Grado centrado en la implementación de algoritmos de *Monte Carlo Tree Search (MCTS)* y *minimax* para diferentes tipos de juegos de mesa, entre ellos, según clasifica la teoría de juegos, los juegos de información perfecta, como lo son el *ajedrez* o las *damas*, en los que en todo momento cualquier jugador puede ver toda la información del juego, como los posibles movimientos del rival, y juegos de información imperfecta, como lo son la mayoría de juegos de cartas como por ejemplo el *Uno* o la *brisca*, en el que los jugadores solo conocen información propia, como sus cartas, o información general del juego, como el estado de la mesa, pero desconocen la información del rival, como las cartas de los demás jugadores.
 
 ### Juegos de Información Perfecta
 
-Para este tipo de juegos se han implementado los algoritmos de MCTS con UCT [[1]](#MCTS) y minimax con la técnica de poda de alfa-beta [[2]](#Minimax). Además, como ejemplos para ver el correcto uso de la biblioteca, se han creado diferentes juegos de mesa, entre ellos, *TicTacToe* (3 en raya), *Ultimate TicTacToe* [[3]](#UltimateTicTacToe) y *las damas*.
+Para este tipo de juegos se han implementado los algoritmos de *MCTS con UCT* [[1]](#MCTS) y *minimax* con la técnica de *poda de alfa-beta* [[2]](#Minimax). Además, como ejemplos para ver el correcto uso de la biblioteca, se han creado diferentes juegos de mesa, entre ellos, el *Tic-Tac-Toe* (3 en raya), el *Ultimate Tic-Tac-Toe* [[3]](#UltimateTicTacToe) y las *damas*.
 
 ### Juegos de Información Imperfecta
 
-Para este segundo tipo de juegos se han implementado dos algoritmos, el *Single Observer Information Set Monte Carlo Tree Search* [[4]](#ISMCTS) (SO-ISMCTS) y el *Multiple Observer Information Set Monte Carlo Tree Search* [[4]](#ISMCTS) (MO-ISMCTS). El primero de estos algoritmos genera un único árbol desde el punto de vista del jugador al que le toca jugar. Por otro lado, el segundo algoritmo crea un árbol para cada uno de los jugadores y agrupa las acciones que son indiferenciables desde el punto de vista de este jugador, es decir, si un jugador puede realizar varios movimientos que no aportarían información a los rivales, agrupa estos movimientos como si fuesen uno solo, creando un único nodo en el árbol de los jugadores rivales.
+Para este segundo tipo de juegos se han implementado dos algoritmos, el *Single Observer Information Set Monte Carlo Tree Search (SO-ISMCTS)* [[4]](#ISMCTS) y el *Multiple Observer Information Set Monte Carlo Tree Search (MO-ISMCTS)* [[4]](#ISMCTS). El primero de estos algoritmos genera un único árbol desde el punto de vista del jugador al que le toca jugar. Por otro lado, el segundo algoritmo crea un árbol para cada uno de los jugadores y agrupa las acciones que son indiferenciables desde el punto de vista de este jugador, es decir, si un jugador puede realizar varios movimientos que no aportarían información a los rivales, agrupa estos movimientos como si fuesen uno solo, creando un único nodo en el árbol de los jugadores rivales.
 
 Un ejemplo serían los juegos en los que un jugador intercambia una de las cartas de su mano con cualquier carta de la baraja, cuando el jugador efectúa este intercambio los demás jugadores no reciben ningún tipo de información sobre el intercambio de cartas, por lo que su conocimiento sobre el estado del juego no cambia. 
 
-Para estos algoritmos también se han desarrollado varios juegos como ejemplos de uso de la biblioteca, aunque ambos algoritmos se pueden usar en todos los juegos de información imperfecta, se ha diferenciado entre juegos para el SO-ISMCTS y el MO-ISMCTS. Para el primer algoritmo se ha creado *el juego de la escoba*, *el Stratego* y *el blackJack*, y para el segundo se ha desarrollado *el holjjak* (juego de adivinar las canicas del rival) y *el phantom* (variante del 4 en raya en el que no se ven los movimientos del rival).
+Para estos algoritmos también se han desarrollado varios juegos como ejemplos de uso de la biblioteca, aunque ambos algoritmos se pueden usar en todos los juegos de información imperfecta, se ha diferenciado entre juegos para el *SO-ISMCTS* y el *MO-ISMCTS*. Para el primer algoritmo se ha creado el juego de la *escoba*, el *Stratego* y el *blackJack*, y para el segundo se ha desarrollado el *holjjak* (juego de adivinar las canicas del rival) y el *phantom* (variante del 4 en raya en el que no se ven los movimientos del rival).
 
 ## Manual de Uso
 El primer paso necesario para poder usar esta biblioteca es descargarla. Se puede descargar la biblioteca desde la consola usando el comando: 
@@ -22,7 +22,7 @@ El primer paso necesario para poder usar esta biblioteca es descargarla. Se pued
 pip install pyplAI
 ```
 
-Tras esto, ya se puede importar en el archivo de Python del juego al que queramos implementarla.
+Tras esto, ya se puede importar en el archivo de *Python* del juego al que queramos implementarla.
 
 ``` python
 import pyplAI
@@ -180,7 +180,7 @@ En el caso del algoritmo de *minimax*, además de los 4 métodos generales, se n
             return evaluacion
 ```
 
-Por ejemplo, para el juego de *las damas* una posible heurística sería contar el número de fichas del jugador y restarle el número de fichas del rival. Hay multitud de posibles heurísticas para cada uno de los juegos, y se debe tener un conocimiento sobre el juego para poder crear una buena heurística, ya que la heurística tendrá un gran peso a la hora de decidir cuál es el mejor movimiento.
+Por ejemplo, para el juego de las *damas* una posible heurística sería contar el número de fichas del jugador y restarle el número de fichas del rival. Hay multitud de posibles heurísticas para cada uno de los juegos, y se debe tener un conocimiento sobre el juego para poder crear una buena heurística, ya que la heurística tendrá un gran peso a la hora de decidir cuál es el mejor movimiento.
 
 Al igual que en el método *gana_jugador*, el argumento *jugador* debe ser un número entero positivo, desde el 1, para el primer jugador, hasta *n*, para el último jugador, siendo *n* el número total de jugadores.
 
@@ -250,7 +250,7 @@ Sabiendo todo esto ya podemos ver como se deben hacer las llamadas a la bibliote
 
 **•	Modo *verbose*:**
 
-Si queremos ver algunos detalles cuando ejecutemos el algoritmo, se debe añadir un *True* como último argumento en la llamada al constructor. Este modo mostrará información útil del algoritmo por consola, como por ejemplo, tiempo de ejecución, número de nodos creados y visitados y demás características propias de cada uno de los algoritmos. Un ejemplo de como quedaría la creación del algoritmo de MCTS con este argumento extra sería el siguiente:
+Si queremos ver algunos detalles cuando ejecutemos el algoritmo, se debe añadir un *True* como último argumento en la llamada al constructor. Este modo mostrará información útil del algoritmo por consola, como por ejemplo, tiempo de ejecución, número de nodos creados y visitados y demás características propias de cada uno de los algoritmos. Un ejemplo de como quedaría la creación del algoritmo de *MCTS* con este argumento extra sería el siguiente:
 
 ``` python
   mcts = pyplAI.MCTS(
@@ -265,7 +265,7 @@ Si queremos ver algunos detalles cuando ejecutemos el algoritmo, se debe añadir
 
 ### Ejecución Algoritmo
 
-Una vez tengamos el objeto del algoritmo que se quiere utilizar solamente se debe llamar a su método *ejecuta* y pasarle como argumento el objeto que contiene el estado actual del juego, esto devolverá el mejor movimiento encontrado durante el tiempo de computación dado, para los algoritmos de *Monte Carlo*, o la profundidad de búsqueda, en el caso del algoritmo *minimax*. A continuación, se mostrará el código de ejemplo en el que se usa el algoritmo de *MCTS* para obtener un movimiento y seguidamente aplicarlo al juego, obtiendo así un nuevo estado del juego:
+Una vez tengamos el objeto del algoritmo que se quiere utilizar solamente se debe llamar a su método *ejecuta* y pasarle como argumento el objeto que contiene el estado actual del juego, esto devolverá el mejor movimiento encontrado durante el tiempo de computación dado, para los algoritmos de *Monte Carlo*, o la profundidad de búsqueda, en el caso del algoritmo *minimax*. A continuación, se mostrará el código de ejemplo en el que se usa el algoritmo de *MCTS* para obtener un movimiento y seguidamente aplicarlo al juego, obteniendo así un nuevo estado del juego:
 
 ``` python
   def main():
