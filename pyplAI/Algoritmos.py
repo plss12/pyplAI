@@ -6,7 +6,7 @@ import math
 class MCTS:
     k = 1/math.sqrt(2) #Coeficiente de exploracion
 
-    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, numeroJugadores, tiempoEjecucion, estadisticas=True):
+    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, numeroJugadores, tiempoEjecucion, estadisticas=False):
         self.aplicar_movimiento = staticmethod(aplicar_movimiento)
         self.obtener_movimientos = staticmethod(obtener_movimientos)
         self.es_estado_final = staticmethod(es_estado_final)
@@ -136,7 +136,7 @@ class MCTS:
             v = v.padre
 
 class Minimax:
-    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, heuristica, numeroJugadores, profundidadBusqueda, estadisticas=True):
+    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, heuristica, numeroJugadores, profundidadBusqueda, estadisticas=False):
         self.aplicar_movimiento = staticmethod(aplicar_movimiento)
         self.obtener_movimientos = staticmethod(obtener_movimientos)
         self.es_estado_final = staticmethod(es_estado_final)
@@ -220,7 +220,7 @@ class Minimax:
 class SOISMCTS:
     k = 1/math.sqrt(2) #Coeficiente de exploracion
 
-    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, determinization, numeroJugadores, tiempoEjecucion, estadisticas=True):
+    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, determinization, numeroJugadores, tiempoEjecucion, estadisticas=False):
         self.aplicar_movimiento = staticmethod(aplicar_movimiento)
         self.obtener_movimientos = staticmethod(obtener_movimientos)
         self.es_estado_final = staticmethod(es_estado_final)
@@ -353,7 +353,7 @@ class SOISMCTS:
 class MOISMCTS:
     k=1/math.sqrt(2)
 
-    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, determinization, accion_visible, numeroJugadores, tiempoEjecucion, estadisticas=True):
+    def __init__(self, aplicar_movimiento, obtener_movimientos, es_estado_final, gana_jugador, determinization, accion_visible, numeroJugadores, tiempoEjecucion, estadisticas=False):
         self.aplicar_movimiento = staticmethod(aplicar_movimiento)
         self.obtener_movimientos = staticmethod(obtener_movimientos)
         self.es_estado_final = staticmethod(es_estado_final)
