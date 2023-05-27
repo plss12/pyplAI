@@ -60,7 +60,8 @@ class Phantom:
     
     def imprime_movimientos(self, movimientos):
         for i in range(len(movimientos)):
-            print(i+1,": ",movimientos[i])
+            newI=3-movimientos[i][0]+1
+            print("Movimiento "+str(i+1)+": \n  Fila -",newI," \n  Columna -",movimientos[i][1]+1,"\n")
 
     def imprime_estado(self):
         self.imprime_tablero([self.jugadorActual])
