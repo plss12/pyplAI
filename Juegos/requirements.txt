@@ -1,2 +1,2 @@
 colorama==0.4.6
-pyplAI==1.0.2
+pyplAI==1.0.3
