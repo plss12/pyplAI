@@ -1,5 +1,9 @@
-"""Resume resultados.jsonl de la réplica."""
-import json
+"""Resume resultados.csv: porcentaje de victorias de cada bando con su intervalo de confianza del 95 %.
+
+Uso: python resumen.py [resultados.csv]
+"""
+
+import csv
 import math
 import statistics
 import sys
@@ -7,46 +11,43 @@ from collections import Counter, defaultdict
 
 
 def wilson(k, n, z=1.96):
-    if n == 0:
-        return (0, 0)
+    """Intervalo de confianza de Wilson para una proporción k / n."""
     p = k / n
-    c = (p + z * z / (2 * n)) / (1 + z * z / n)
-    h = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
-    return (max(0, c - h), min(1, c + h))
+    centro = (p + z * z / (2 * n)) / (1 + z * z / n)
+    margen = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    return max(0.0, centro - margen), min(1.0, centro + margen)
 
 
-grupos = defaultdict(list)
-for linea in open(sys.argv[1], encoding="utf-8"):
-    r = json.loads(linea)
-    if r["exp"] in ("calibracion", "tiempos_minimax"):
-        if r["exp"] == "tiempos_minimax":
-            print("Tiempos medios de minimax (calibración):", {k: round(v, 3) for k, v in r["medias"].items()})
-        continue
-    c = dict(r["config"])
-    c.pop("tiempo", None) if r["exp"] == "mcts_vs_minimax" else None
-    clave = (r["exp"], json.dumps(c, sort_keys=True))
-    grupos[clave].append(r)
+def main():
+    ruta = sys.argv[1] if len(sys.argv) > 1 else "resultados.csv"
+    grupos = defaultdict(list)
+    with open(ruta, encoding="utf-8") as f:
+        for fila in csv.DictReader(f):
+            clave = (fila["juego"], fila["agente"], fila["rival"], fila["profundidad_tfg"], fila["jugadores"], fila["tiempo"])
+            grupos[clave].append(fila)
 
-for (exp, config), rs in sorted(grupos.items()):
-    n = len(rs)
-    if exp == "blackjack":
-        v = [r["resultado"] for r in rs]
-        print(f"{exp:16s} {config:60s} n={n:3d} media={statistics.mean(v):+.2f} monedas (de {statistics.stdev(v)/math.sqrt(n):.2f} e.e.)")
-        continue
-    cuenta = Counter(r["resultado"] for r in rs)
-    partes = []
-    for etiqueta, k in cuenta.most_common():
-        lo, hi = wilson(k, n)
-        partes.append(f"{etiqueta} {100*k/n:.0f}% [{100*lo:.0f}-{100*hi:.0f}]")
-    extra = ""
-    if exp == "phantom" and '"b": "so"' in config:
-        ia = [x for r in rs for x in r["iter_a"]]
-        ib = [x for r in rs for x in r["iter_b"]]
-        if ia and ib:
-            extra = f" | iter/jugada MO={statistics.mean(ia):.0f} SO={statistics.mean(ib):.0f} (SO/MO={statistics.mean(ib)/statistics.mean(ia):.2f})"
-    if exp == "holjjak" and '"b": "so"' in config:
-        ia = [x for r in rs for x in r["iter_a"]]
-        ib = [x for r in rs for x in r["iter_b"]]
-        if ia and ib:
-            extra = f" | iter/jugada MO={statistics.mean(ia):.0f} SO={statistics.mean(ib):.0f} (SO/MO={statistics.mean(ib)/statistics.mean(ia):.2f})"
-    print(f"{exp:16s} {config:60s} n={n:3d} " + ", ".join(partes) + extra)
+    for (juego, agente, rival, profundidad, jugadores, tiempo), filas in grupos.items():
+        n = len(filas)
+        etiqueta = f"{juego}: {agente} contra {rival}"
+        if profundidad:
+            etiqueta += f", profundidad del TFG {profundidad}"
+        if jugadores:
+            etiqueta += f", {jugadores} jugadores"
+        if tiempo:
+            etiqueta += f", {tiempo} s"
+        if juego == "blackjack":
+            monedas = [float(fila["monedas"]) for fila in filas]
+            error = f" (error típico {statistics.stdev(monedas) / math.sqrt(n):.2f})" if n > 1 else ""
+            print(f"{etiqueta} (n={n}): {statistics.mean(monedas):+.2f} monedas por partida{error}")
+            continue
+        cuenta = Counter(fila["ganador"] for fila in filas)
+        partes = []
+        for ganador in (agente, rival, "empate"):
+            k = cuenta.get(ganador, 0)
+            bajo, alto = wilson(k, n)
+            partes.append(f"{ganador} {100 * k / n:.0f} % [{100 * bajo:.0f}-{100 * alto:.0f}]")
+        print(f"{etiqueta} (n={n}): " + ", ".join(partes))
+
+
+if __name__ == "__main__":
+    main()

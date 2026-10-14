@@ -21,22 +21,25 @@ las correcciones. Los PDF del TFG no se modifican: son el trabajo entregado.
 
 | Archivo | Contenido |
 | --- | --- |
-| `replica.py` | Experimentos de información imperfecta y una primera pasada de minimax frente a MCTS con tiempos calibrados contra un agente aleatorio. Se descartó porque esos tiempos son mucho menores que los del TFG. |
-| `replica_tfg.py` | Minimax frente a MCTS con los tiempos del TFG. |
-| `iteraciones.py`, `iteraciones_103.py` | Iteraciones por segundo de SO-ISMCTS y MO-ISMCTS con la 1.1.0 y con la 1.0.3 y los juegos originales (`git archive d4b5743 Juegos`). |
-| `resultados.jsonl`, `resultados_tiempos_tfg.jsonl`, `iteraciones.txt` | Resultados en bruto. |
-| `resumen.py` | Genera las tablas a partir de los resultados. |
+| `replica.py` | Juega todas las partidas de la réplica y las añade a `resultados.csv`. |
+| `resultados.csv` | Una fila por partida: juego, algoritmos, tiempo, profundidad, semilla, ganador (o monedas en Blackjack), jugadas y segundos. |
+| `resumen.py` | Calcula los porcentajes y los intervalos de confianza de las tablas de este documento a partir del CSV. |
+| `iteraciones.py` | Mide las iteraciones de SO-ISMCTS y MO-ISMCTS en el mismo tiempo, con la versión de pyplAI instalada (1.1.0 o 1.0.3). |
+| `iteraciones.txt` | Resultado de esa medición con las dos versiones. |
 
 ```bash
-python replica.py <ruta del repo> resultados.jsonl 10
-python replica_tfg.py <ruta del repo> resultados_tiempos_tfg.jsonl 10
-python resumen.py resultados.jsonl
+python replica.py                                   # unas horas con 10 procesos
+python resumen.py
+python iteraciones.py
+# Con la 1.0.3, en un entorno con pyplAI==1.0.3 y los juegos originales:
+git archive d4b5743 Juegos | tar -x -C <carpeta>
+python iteraciones.py --juegos <carpeta>
 ```
 
 ## Resultados
 
 Porcentajes de victorias, derrotas y empates. Entre corchetes, el intervalo de confianza del 95 %
-de las victorias del algoritmo evaluado.
+de la cifra a la que acompañan.
 
 ### Minimax frente a MCTS (MCTS / minimax / empates)
 

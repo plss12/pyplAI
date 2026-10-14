@@ -1,256 +1,175 @@
-"""Réplica reducida de los experimentos del TFG (capítulo 6) con pyplAI 1.1.0 y los juegos corregidos.
+"""Réplica reducida de los experimentos del capítulo 6 del TFG con pyplAI 1.1.0 y los juegos corregidos.
 
-Uso: python replica.py <repo pyplAI> <salida.jsonl> [procesos]
+Cada partida es una fila de resultados.csv. La semilla de cada partida fija el azar de los juegos y
+decide quién empieza, que se alterna entre partidas como en el TFG.
+
+Uso:
+    python replica.py [--salida resultados.csv] [--procesos 10]
+    python replica.py --salida prueba.csv --partidas 2 --factor-tiempo 0.05   # prueba rápida
 """
+
+import argparse
 import contextlib
+import csv
 import io
-import json
 import multiprocessing as mp
 import random
-import statistics
 import sys
 import time
+from pathlib import Path
 
-REPO = None
-CLASES = {"tictactoe": "TicTacToe", "ultimate": "UltimateTTT", "damas": "Damas"}
+REPO = Path(__file__).resolve().parents[2]
+COLUMNAS = ["juego", "agente", "rival", "tiempo", "profundidad_tfg", "jugadores", "semilla", "ganador", "monedas", "jugadas", "segundos"]
+
+# MCTS contra Minimax: MCTS recibe el tiempo medio por jugada de minimax medido en el TFG (sección 6.1).
+# En la 1.0.3 una profundidad d exploraba d + 1 jugadas, así que aquí se usa d + 1.
+MINIMAX = {
+    "tictactoe": {3: (0.06, 100), 4: (0.14, 100), 5: (0.23, 100), 6: (0.8, 100)},
+    "ultimate": {2: (0.25, 40), 3: (0.79, 40), 4: (4.02, 12)},
+    "damas": {2: (0.15, 24), 3: (0.32, 24), 4: (0.85, 24), 5: (1.77, 24)},
+}
+CLASES = {"tictactoe": "TicTacToe", "ultimate": "UltimateTTT", "damas": "Damas", "phantom": "Phantom", "holjjak": "Holjjak"}
 
 
-def preparar(repo):
-    global REPO
-    REPO = repo
-    sys.path.insert(0, repo)
-    sys.path.insert(0, repo + "/tests")
-
-
-def juego(nombre):
+def cargar(nombre):
+    sys.path.insert(0, str(REPO))
+    sys.path.insert(0, str(REPO / "tests"))
     from utilidades import cargar_juego
+
     return cargar_juego(nombre)
 
 
-# ---------------------------------------------------------------- agentes
+def aleatorio(obtener_movimientos):
+    return lambda estado: random.choice(obtener_movimientos(estado))
 
 
-class Medido:
-    """Envuelve un algoritmo para medir tiempos e iteraciones por jugada."""
-    def __init__(self, alg):
-        self.alg, self.tiempos, self.iteraciones = alg, [], []
-
-    def __call__(self, estado):
-        t0 = time.perf_counter()
-        movs = self.alg.obtener_movimientos(estado)
-        if len(movs) == 1:
-            mov = movs[0]
-        elif hasattr(self.alg, "presupuesto"):
-            r = self.alg.analiza(estado)
-            self.iteraciones.append(r.iteraciones)
-            mov = r.movimiento
-        else:
-            mov = self.alg.ejecuta(estado)
-        self.tiempos.append(time.perf_counter() - t0)
-        return mov
-
-
-def aleatorio(obtener):
-    return lambda estado: random.choice(obtener(estado))
-
-
-def crear(nombre, tipo, valor):
-    import pyplAI
-    m = juego(nombre)
-    if nombre in ("tictactoe", "ultimate", "damas"):
-        C = getattr(m, CLASES[nombre])
-        if tipo == "minimax":
-            return Medido(pyplAI.Minimax(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.heuristica, 2, valor))
-        if tipo == "mcts":
-            return Medido(pyplAI.MCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, 2, valor))
-        return aleatorio(C.obtiene_movimientos)
-    if nombre in ("phantom", "holjjak"):
-        C = m.Phantom if nombre == "phantom" else m.Holjjak
-        if tipo == "so":
-            return Medido(pyplAI.SOISMCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.determinization, 2, valor))
-        if tipo == "mo":
-            return Medido(pyplAI.MOISMCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.determinization, C.accion_visible, 2, valor))
-        return aleatorio(C.obtiene_movimientos)
-    if nombre == "escoba":
-        C = m.Escoba
-        if tipo == "so":
-            return Medido(pyplAI.SOISMCTS(C.aplicarMovimiento, C.obtieneMovimientos, C.esEstadoFinal, C.ganaJugador, C.determinization, valor[1], valor[0]))
-        return aleatorio(C.obtieneMovimientos)
-    if nombre == "stratego":
-        C = m.Stratego
-        if tipo == "so":
-            return Medido(pyplAI.SOISMCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.determinization, 2, valor))
-        return aleatorio(C.obtiene_movimientos)
-    raise ValueError(nombre)
-
-
-# ---------------------------------------------------------------- partidas
-
-
-def partida_dos(nombre, estado, agentes, es_final, aplicar, ganador):
-    """agentes: {1: agente, 2: agente}. Devuelve el jugador ganador o 0."""
+def jugar(estado, agentes, es_final, aplicar):
+    """Juega hasta el final. agentes: {1: agente, 2: agente}. Devuelve el estado final y las jugadas."""
     jugadas = 0
     while not es_final(estado):
         estado = aplicar(estado, agentes[estado.jugadorActual](estado))
         jugadas += 1
-    return ganador(estado), jugadas
+    return estado, jugadas
 
 
-def tarea(args):
-    repo, exp, config, semilla = args
-    preparar(repo)
+def ganador(estado):
+    return 1 if estado.gana_jugador(1) else 2 if estado.gana_jugador(2) else 0
+
+
+def partida(tarea):
+    """Juega una partida y devuelve su fila del CSV."""
+    import pyplAI
+
+    juego, agente, rival, tiempo, extra, semilla = tarea
     random.seed(semilla)
+    fila = dict.fromkeys(COLUMNAS, "")
+    fila.update(juego=juego, agente=agente, rival=rival, tiempo=tiempo, semilla=semilla, **extra)
+    lado = 1 + semilla % 2  # lado del agente: se alterna quién empieza
     t0 = time.perf_counter()
     with contextlib.redirect_stdout(io.StringIO()):
-        res = ejecutar(exp, config, semilla)
-    res.update(exp=exp, config=config, semilla=semilla, segundos=round(time.perf_counter() - t0, 2))
-    return res
+        if rival == "minimax":
+            C = getattr(cargar(juego), CLASES[juego])
+            minimax = pyplAI.Minimax(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.heuristica, 2, extra["profundidad_tfg"] + 1)
+            mcts = pyplAI.MCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, 2, tiempo)
+            estado = C(100) if juego == "damas" else C()
+            final, jugadas = jugar(estado, {lado: mcts.ejecuta, 3 - lado: minimax.ejecuta}, C.es_estado_final, C.aplica_movimiento)
+            g = final.ganador()
+            fila.update(ganador="empate" if g == 0 else "mcts" if g == lado else "minimax", jugadas=jugadas)
+
+        elif juego in ("phantom", "holjjak"):
+            C = getattr(cargar(juego), CLASES[juego])
+
+            def crear(nombre):
+                if nombre == "mo-ismcts":
+                    return pyplAI.MOISMCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.determinization, C.accion_visible, 2, tiempo).ejecuta
+                if nombre == "so-ismcts":
+                    return pyplAI.SOISMCTS(C.aplica_movimiento, C.obtiene_movimientos, C.es_estado_final, C.gana_jugador, C.determinization, 2, tiempo).ejecuta
+                return aleatorio(C.obtiene_movimientos)
+
+            final, jugadas = jugar(C(), {lado: crear(agente), 3 - lado: crear(rival)}, C.es_estado_final, C.aplica_movimiento)
+            g = ganador(final)
+            fila.update(ganador="empate" if g == 0 else agente if g == lado else rival, jugadas=jugadas)
+
+        elif juego == "escoba":
+            E = cargar("escoba").Escoba
+            n = extra["jugadores"]
+            con_so = 1 if n == 2 else 2
+            so = pyplAI.SOISMCTS(E.aplicarMovimiento, E.obtieneMovimientos, E.esEstadoFinal, E.ganaJugador, E.determinization, n, tiempo)
+            # Los asientos de SO-ISMCTS rotan con la semilla; con 4 jugadores son asientos opuestos
+            asientos = {((semilla + k * (n // con_so)) % n) + 1 for k in range(con_so)}
+            estado = E(n, False)
+            while not estado.esEstadoFinal():
+                agente_turno = so.ejecuta if estado.jugadorActual in asientos else aleatorio(E.obtieneMovimientos)
+                estado.aplicarMovimiento(agente_turno(estado))
+            ganadores = estado.finalPartida()
+            de_so = sum(1 for g in ganadores if g in asientos)
+            de_aleatorio = len(ganadores) - de_so
+            fila.update(ganador="so-ismcts" if de_so > de_aleatorio else "aleatorio" if de_aleatorio > de_so else "empate")
+
+        elif juego == "blackjack":
+            B = cargar("blackjack").BlackJack
+            p = B(100)
+            so = pyplAI.SOISMCTS(B.aplica_accion, B.posibles_acciones, B.es_estado_final_ronda, B.gana_jugador_ronda, B.determinization, 2, tiempo) if agente == "so-ismcts" else None
+            while not p.es_estado_final():
+                p.comprobarNuevaRonda()
+                if not p.iniciarRonda:
+                    p.rondaMCTS(so) if so else p.rondaPrueba()
+            fila.update(monedas=p.jugador.creditos - p.jugador.creditosIniciales)
+
+        elif juego == "stratego":
+            m = cargar("stratego")
+            S = m.Stratego
+            colocacion = m.posicionFichasAlgoritmoGenetico()
+            so_ag = pyplAI.SOISMCTS(S.aplica_movimiento, S.obtiene_movimientos, S.es_estado_final, S.gana_jugador, S.determinization, 2, tiempo)
+            if rival == "so-ismcts":
+                otro = pyplAI.SOISMCTS(S.aplica_movimiento, S.obtiene_movimientos, S.es_estado_final, S.gana_jugador, S.determinization, 2, tiempo).ejecuta
+            else:
+                otro = aleatorio(S.obtiene_movimientos)
+            estado = S(500, colocacion, None) if lado == 1 else S(500, None, colocacion)
+            final, jugadas = jugar(estado, {lado: so_ag.ejecuta, 3 - lado: otro}, S.es_estado_final, S.aplica_movimiento)
+            g = ganador(final)
+            fila.update(ganador="empate" if g == 0 else agente if g == lado else rival, jugadas=jugadas)
+    fila["segundos"] = round(time.perf_counter() - t0, 2)
+    return fila
 
 
-def ejecutar(exp, c, semilla):
-    m = None
-    if exp in ("calibracion", "mcts_vs_minimax"):
-        nombre = c["juego"]
-        m = juego(nombre)
-        C = getattr(m, CLASES[nombre])
-        nuevo = (lambda: C(c["turnos"])) if nombre == "damas" else C
-        mm = crear(nombre, "minimax", c["profundidad"])
-        otro = crear(nombre, "mcts", c["tiempo"]) if exp == "mcts_vs_minimax" else crear(nombre, "aleatorio", None)
-        #Se alterna quién juega primero (en damas empieza el jugador 2)
-        a_minimax = 1 + semilla % 2
-        agentes = {a_minimax: mm, 3 - a_minimax: otro}
-        g, jugadas = partida_dos(nombre, nuevo(), agentes, C.es_estado_final, C.aplica_movimiento, C.ganador)
-        etiqueta = "empate" if g == 0 else ("minimax" if g == a_minimax else ("mcts" if exp == "mcts_vs_minimax" else "aleatorio"))
-        return {"resultado": etiqueta, "jugadas": jugadas, "tiempos_minimax": mm.tiempos}
-
-    if exp in ("phantom", "holjjak"):
-        m = juego(exp)
-        C = m.Phantom if exp == "phantom" else m.Holjjak
-        a = crear(exp, c["a"], c["tiempo"])
-        b = crear(exp, c["b"], c["tiempo"])
-        lado_a = 1 + semilla % 2
-        g, jugadas = partida_dos(exp, C(), {lado_a: a, 3 - lado_a: b}, C.es_estado_final, C.aplica_movimiento,
-                                 lambda s: 1 if s.gana_jugador(1) else (2 if s.gana_jugador(2) else 0))
-        etiqueta = "empate" if g == 0 else (c["a"] if g == lado_a else c["b"])
-        return {"resultado": etiqueta, "jugadas": jugadas,
-                "iter_a": getattr(a, "iteraciones", []), "iter_b": getattr(b, "iteraciones", [])}
-
-    if exp == "escoba":
-        C = juego("escoba").Escoba
-        n = c["jugadores"]
-        so = crear("escoba", "so", (c["tiempo"], n))
-        #Los asientos del SO-ISMCTS rotan con la semilla
-        asientos_so = {((semilla + k * (n // c["so"])) % n) + 1 for k in range(c["so"])}
-        estado = C(n, False)
-        alea = crear("escoba", "aleatorio", None)
-        while not estado.esEstadoFinal():
-            agente = so if estado.jugadorActual in asientos_so else alea
-            estado.aplicarMovimiento(agente(estado))
-        ganadores = estado.finalPartida()
-        so_g = sum(1 for g in ganadores if g in asientos_so)
-        al_g = len(ganadores) - so_g
-        etiqueta = "so" if so_g > al_g else ("aleatorio" if al_g > so_g else "empate")
-        return {"resultado": etiqueta}
-
-    if exp == "blackjack":
-        B = juego("blackjack").BlackJack
-        p = B(100)
-        so = None
-        if c["agente"] == "so":
-            import pyplAI
-            so = pyplAI.SOISMCTS(B.aplica_accion, B.posibles_acciones, B.es_estado_final_ronda, B.gana_jugador_ronda, B.determinization, 2, c["tiempo"])
-        while not p.es_estado_final():
-            p.comprobarNuevaRonda()
-            if not p.iniciarRonda:
-                if so:
-                    p.rondaMCTS(so)
-                else:
-                    p.rondaPrueba()
-        return {"resultado": p.jugador.creditos - p.jugador.creditosIniciales}
-
-    if exp == "stratego":
-        mod = juego("stratego")
-        S = mod.Stratego
-        ga = mod.posicionFichasAlgoritmoGenetico()
-        so_ga = crear("stratego", "so", c["tiempo"])
-        rival = crear("stratego", c["rival"], c["tiempo"])
-        lado = 1 + semilla % 2
-        estado = S(500, ga, None) if lado == 1 else S(500, None, ga)
-        g, jugadas = partida_dos("stratego", estado, {lado: so_ga, 3 - lado: rival}, S.es_estado_final, S.aplica_movimiento,
-                                 lambda s: 1 if s.gana_jugador(1) else (2 if s.gana_jugador(2) else 0))
-        etiqueta = "empate" if g == 0 else ("so_ga" if g == lado else c["rival"])
-        return {"resultado": etiqueta, "jugadas": jugadas}
-    raise ValueError(exp)
-
-
-# ---------------------------------------------------------------- plan
-
-
-#Profundidades del TFG y su equivalente en pyplAI 1.1 (antes se exploraban d + 1 niveles)
-PERFECTA = {
-    "tictactoe": {"tfg": [3, 4, 5, 6], "partidas": 100, "calibracion": 10},
-    "ultimate": {"tfg": [2, 3, 4], "partidas": {2: 40, 3: 40, 4: 12}, "calibracion": 2},
-    "damas": {"tfg": [2, 3, 4, 5], "partidas": 24, "calibracion": 2, "turnos": 100},
-}
+def tareas(limite, factor):
+    """(juego, agente, rival, tiempo, extra, partidas) de cada configuración, de la más larga a la más corta."""
+    configuraciones = []
+    for juego in ("damas", "ultimate", "tictactoe"):
+        for d, (t, n) in sorted(MINIMAX[juego].items(), reverse=True):
+            configuraciones.append((juego, "mcts", "minimax", t, {"profundidad_tfg": d}, n))
+    configuraciones += [("stratego", "so-ismcts+ag", "aleatorio", t, {}, 20) for t in (0.5, 1)]
+    configuraciones += [("stratego", "so-ismcts+ag", "so-ismcts", 0.5, {}, 20)]
+    configuraciones += [("escoba", "so-ismcts", "aleatorio", t, {"jugadores": 2}, 60) for t in (0.25, 0.5, 1, 2)]
+    configuraciones += [("escoba", "so-ismcts", "aleatorio", 0.5, {"jugadores": 4}, 60)]
+    configuraciones += [("blackjack", "so-ismcts", "croupier", t, {}, 40) for t in (0.25, 1)]
+    configuraciones += [("blackjack", "aleatorio", "croupier", "", {}, 100)]
+    for t in (0.25, 1):
+        configuraciones += [("phantom", "mo-ismcts", "aleatorio", t, {}, 60), ("holjjak", "mo-ismcts", "aleatorio", t, {}, 60), ("holjjak", "mo-ismcts", "so-ismcts", t, {}, 60)]
+    configuraciones += [("phantom", "mo-ismcts", "so-ismcts", t, {}, 60) for t in (0.5, 2)]
+    for juego, agente, rival, t, extra, n in configuraciones:
+        tiempo = round(t * factor, 4) if t != "" else ""
+        for semilla in range(min(n, limite) if limite else n):
+            yield (juego, agente, rival, tiempo, extra, semilla)
 
 
 def main():
-    repo, salida = sys.argv[1], sys.argv[2]
-    procesos = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-    preparar(repo)
-    pool = mp.Pool(procesos)
-    resultados = []
-
-    def lanzar(tareas):
-        with open(salida, "a", encoding="utf-8") as f:
-            for r in pool.imap_unordered(tarea, tareas):
-                f.write(json.dumps(r) + "\n")
-                f.flush()
-                resultados.append(r)
-                print(r["exp"], r["config"], r["resultado"] if not isinstance(r["resultado"], list) else "", r["segundos"], flush=True)
-
-    #1. Calibración: tiempo medio por jugada de minimax para cada profundidad
-    calib = []
-    for nombre, cfg in PERFECTA.items():
-        for d in cfg["tfg"]:
-            for s in range(cfg["calibracion"]):
-                calib.append((repo, "calibracion", {"juego": nombre, "profundidad": d + 1, "tfg": d, "turnos": cfg.get("turnos")}, s))
-    lanzar(calib)
-    tiempos = {}
-    for r in resultados:
-        if r["exp"] == "calibracion":
-            tiempos.setdefault((r["config"]["juego"], r["config"]["tfg"]), []).extend(r["tiempos_minimax"])
-    medias = {k: statistics.mean(v) for k, v in tiempos.items()}
-    with open(salida, "a", encoding="utf-8") as f:
-        f.write(json.dumps({"exp": "tiempos_minimax", "medias": {f"{k[0]}:{k[1]}": v for k, v in medias.items()}}) + "\n")
-
-    #2. El resto de experimentos, de más largo a más corto
-    tareas = []
-    for nombre, cfg in PERFECTA.items():
-        for d in cfg["tfg"]:
-            n = cfg["partidas"][d] if isinstance(cfg["partidas"], dict) else cfg["partidas"]
-            for s in range(n):
-                tareas.append((repo, "mcts_vs_minimax", {"juego": nombre, "profundidad": d + 1, "tfg": d,
-                               "tiempo": medias[(nombre, d)], "turnos": cfg.get("turnos")}, s))
-    for t in (0.5, 1):
-        tareas += [(repo, "stratego", {"tiempo": t, "rival": "aleatorio"}, s) for s in range(20)]
-    tareas += [(repo, "stratego", {"tiempo": 0.5, "rival": "so"}, s) for s in range(20)]
-    for t in (0.25, 0.5, 1, 2):
-        tareas += [(repo, "escoba", {"tiempo": t, "jugadores": 2, "so": 1}, s) for s in range(60)]
-    tareas += [(repo, "escoba", {"tiempo": 0.5, "jugadores": 4, "so": 2}, s) for s in range(60)]
-    for t in (0.25, 1):
-        tareas += [(repo, "blackjack", {"agente": "so", "tiempo": t}, s) for s in range(40)]
-    tareas += [(repo, "blackjack", {"agente": "aleatorio"}, s) for s in range(100)]
-    for t in (0.25, 1):
-        tareas += [(repo, "phantom", {"a": "mo", "b": "aleatorio", "tiempo": t}, s) for s in range(60)]
-        tareas += [(repo, "holjjak", {"a": "mo", "b": "aleatorio", "tiempo": t}, s) for s in range(60)]
-        tareas += [(repo, "holjjak", {"a": "mo", "b": "so", "tiempo": t}, s) for s in range(60)]
-    for t in (0.5, 2):
-        tareas += [(repo, "phantom", {"a": "mo", "b": "so", "tiempo": t}, s) for s in range(60)]
-    lanzar(tareas)
-    pool.close()
-    pool.join()
-    print("FIN", flush=True)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--salida", default="resultados.csv")
+    parser.add_argument("--procesos", type=int, default=10)
+    parser.add_argument("--partidas", type=int, default=0, help="Máximo de partidas por configuración (0 = las de la réplica).")
+    parser.add_argument("--factor-tiempo", type=float, default=1.0, help="Multiplica los tiempos de búsqueda, para pruebas rápidas.")
+    args = parser.parse_args()
+    nuevo = not Path(args.salida).exists()
+    with mp.Pool(args.procesos) as pool, open(args.salida, "a", encoding="utf-8", newline="") as f:
+        escritor = csv.DictWriter(f, COLUMNAS, lineterminator="\n")
+        if nuevo:
+            escritor.writeheader()
+        for fila in pool.imap_unordered(partida, tareas(args.partidas, args.factor_tiempo)):
+            escritor.writerow(fila)
+            f.flush()
+            print(fila["juego"], fila["agente"], fila["rival"], fila["tiempo"], fila["ganador"] or fila["monedas"], flush=True)
 
 
 if __name__ == "__main__":
