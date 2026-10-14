@@ -22,6 +22,12 @@ El primer paso necesario para poder usar esta biblioteca es descargarla. Requier
 pip install pyplAI
 ```
 
+> **Versión 1.1.0:** todavía no está publicada en PyPI, así que `pip install pyplAI` instala la 1.0.3. Para usar la 1.1.0, que es la que describe este manual, se instala desde GitHub:
+>
+> ``` python
+> pip install git+https://github.com/plss12/pyplAI@v1.1.0
+> ```
+
 Tras esto, ya se puede importar en el archivo de *Python* del juego al que queramos implementarla.
 
 ``` python
