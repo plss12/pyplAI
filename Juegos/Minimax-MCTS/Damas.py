@@ -15,14 +15,15 @@ class Damas:
     jugadores = 2
 
     def __init__(self,turnos):
-        self.tablero = ([0,1,0,1,0,1,0,1],
-                        [1,0,1,0,1,0,1,0],
+        #Se juega en las casillas que incluyen la esquina inferior derecha de cada jugador
+        self.tablero = ([1,0,1,0,1,0,1,0],
                         [0,1,0,1,0,1,0,1],
+                        [1,0,1,0,1,0,1,0],
                         [0,0,0,0,0,0,0,0],
                         [0,0,0,0,0,0,0,0],
-                        [2,0,2,0,2,0,2,0],
                         [0,2,0,2,0,2,0,2],
-                        [2,0,2,0,2,0,2,0])
+                        [2,0,2,0,2,0,2,0],
+                        [0,2,0,2,0,2,0,2])
         self.jugadorActual = 2
         self.turnos = turnos
 
@@ -44,308 +45,103 @@ class Damas:
                     contadorDamasEnemigas+=1
         return 4*(contadorDamas-contadorDamasEnemigas)+(contadorFichas-contadorFichasEnemigas)
 
-    #Funcion que comprueba si una ficha puede capturar algún rival y devuelve estos movimientos
-    def comprobar_captura(self,i,j,lista,iInicial,jInicial,listaCapturas=[]):
-        tablero=self.tablero
-        jugador=self.jugadorActual
-        if(jugador==1):
-            peonRival=2
-            reyRival=4
-        else:
-            peonRival=1
-            reyRival=3
-        der = j+1
-        izq = j-1
-        newI=cambio_coordenada(len(tablero),i)
-        if(jugador==1):
-            arr=i+1
-        else:
-            arr=i-1
-        if(der<=6 and (arr<=6 and arr>=1) and (tablero[arr][der]==peonRival or tablero[arr][der]==reyRival)):
-            if(jugador==1):
-                arr2=arr+1
-            else:
-                arr2=arr-1
-            if(tablero[arr2][der+1]==0):
-                newArr=cambio_coordenada(len(tablero),arr)
-                newListaCapturasDer=listaCapturas[:]
-                newListaCapturasDer.append((der,newArr))
-                self.comprobar_captura(arr2,der+1,lista,iInicial,jInicial,newListaCapturasDer)
-        if(izq>=1 and (arr<=6 and arr>=1) and (tablero[arr][izq]==peonRival or tablero[arr][izq]==reyRival)):
-            if(jugador==1):
-                arr2=arr+1
-            else:
-                arr2=arr-1
-            if(tablero[arr2][izq-1]==0):
-                newArr=cambio_coordenada(len(tablero),arr)
-                newListaCapturasIzq=listaCapturas[:]
-                newListaCapturasIzq.append((izq,newArr))
-                self.comprobar_captura(arr2,izq-1,lista,iInicial,jInicial,newListaCapturasIzq)
-        if(len(listaCapturas)>0):
-            lista.append((len(listaCapturas),(jInicial,iInicial,j,newI),listaCapturas))
-        return lista
+    DIAGONALES = ((1,1),(1,-1),(-1,1),(-1,-1))
 
-    #Funcion que comprueba si una dama puede capturar y devuelve estos movimientos
-    def comprobar_captura_dama(self,i,j,lista,iInicial,jInicial,listaCapturas=[]):
-        tablero=self.tablero
-        jugador=self.jugadorActual
-        if(jugador==1):
-            peonRival=2
-            reyRival=4
-        else:
-            peonRival=1
-            reyRival=3
-        der = j+1
-        izq = j-1
-        newI=cambio_coordenada(len(tablero),i)
-        arr=i+1
-        abj=i-1
-        while(der<=6 and arr<=6):
-            if(tablero[arr][der]==peonRival or tablero[arr][der]==reyRival):
-                if(tablero[arr+1][der+1]==0):
-                    newArr=cambio_coordenada(len(tablero),arr)
-                    newListaCapturasDer=listaCapturas[:]
-                    newListaCapturasDer.append((der,newArr))
-                    newEstado=deepcopy(self)
-                    newEstado.tablero[arr][der]=0
-                    newEstado.tablero[i][j]=0
-                    newEstado.tablero[arr+1][der+1]=jugador
-                    arr2=arr+1
-                    der2=der+1
-                    while(der2<=7 and arr2<=7):
-                        if(tablero[arr2][der2]==0):
-                            newEstado.comprobar_captura_dama(arr2,der2,lista,iInicial,jInicial,newListaCapturasDer)
-                            der2=der2+1
-                            arr2=arr2+1
-                        else:
-                            break
-                    break
-                else:
-                    break
-            elif(tablero[arr][der]==0):
-                arr+=1
-                der+=1
-            else:
-                break
-        der=j+1
-        abj=i-1
-        while(der<=6 and abj>=1):
-            if(tablero[abj][der]==peonRival or tablero[abj][der]==reyRival):
-                if(tablero[abj-1][der+1]==0):
-                    newArr=cambio_coordenada(len(tablero),abj)
-                    newListaCapturasDer=listaCapturas[:]
-                    newListaCapturasDer.append((der,newArr))
-                    newEstado=deepcopy(self)
-                    newEstado.tablero[abj][der]=0
-                    newEstado.tablero[i][j]=0
-                    newEstado.tablero[abj-1][der+1]=jugador
-                    der2=der+1
-                    abj2=abj-1
-                    while(der2<=7 and abj2>=0):
-                        if(tablero[abj2][der2]==0):
-                            newEstado.comprobar_captura_dama(abj2,der2,lista,iInicial,jInicial,newListaCapturasDer)
-                            der2=der2+1
-                            abj2=abj2-1
-                        else:
-                            break
-                    break
-                else:
-                    break
-            elif(tablero[abj][der]==0):
-                der=der+1
-                abj=abj-1
-            else:
-                break
-        izq=j-1
-        arr=i+1
-        while(izq>=1 and arr<=6):
-            if(tablero[arr][izq]==peonRival or tablero[arr][izq]==reyRival):
-                if(tablero[arr+1][izq-1]==0):
-                    newArr=cambio_coordenada(len(tablero),arr)
-                    newListaCapturasIzq=listaCapturas[:]
-                    newListaCapturasIzq.append((izq,newArr))
-                    newEstado=deepcopy(self)
-                    newEstado.tablero[arr][izq]=0
-                    newEstado.tablero[i][j]=0
-                    newEstado.tablero[arr+1][izq-1]=jugador
-                    arr2=arr+1
-                    izq2=izq-1
-                    while(izq2>=0 and arr2<=7):
-                        if(tablero[arr2][izq2]==0):
-                            newEstado.comprobar_captura_dama(arr2,izq2,lista,iInicial,jInicial,newListaCapturasIzq)
-                            izq2=izq2-1
-                            arr2=arr2+1
-                        else:
-                            break
-                    break
-                else:
-                    break
-            elif(tablero[arr][izq]==0):
-                izq=izq-1
-                arr=arr+1
-            else:
-                break
-        izq=j-1
-        abj=i-1
-        while(izq>=1 and abj>=1):
-            if(tablero[abj][izq]==peonRival or tablero[abj][izq]==reyRival):
-                if(tablero[abj-1][izq-1]==0):
-                    newArr=cambio_coordenada(len(tablero),abj)
-                    newListaCapturasIzq=listaCapturas[:]
-                    newListaCapturasIzq.append((izq,newArr))
-                    newEstado=deepcopy(self)
-                    newEstado.tablero[abj][izq]=0
-                    newEstado.tablero[i][j]=0
-                    newEstado.tablero[abj-1][izq-1]=jugador
-                    izq2=izq-1
-                    abj2=abj-1
-                    while(izq2>=0 and abj2>=0):
-                        if(tablero[abj2][izq2]==0):
-                            newEstado.comprobar_captura_dama(abj2,izq2,lista,iInicial,jInicial,newListaCapturasIzq)
-                            izq2=izq2-1
-                            abj2=abj2-1
-                        else:
-                            break
-                    break
-                else:
-                    break
-            elif(tablero[abj][izq]==0):
-                izq=izq-1
-                abj=abj-1
-            else:
-                break
-        if(len(listaCapturas)>0):
-            lista.append((len(listaCapturas),(jInicial,iInicial,j,newI),listaCapturas))
-        return lista
-
-    #Funcion que devuelve una lista con los movimientos que mas capturas tiene
     @staticmethod
-    def limpiar_lista_capturas(lista):
-        lista.sort(key=lambda l:l[0], reverse=True)
-        movimientosMasCapturas=[[mov[1],mov[2]] for mov in lista if mov[0]==lista[0][0]]
-        return movimientosMasCapturas
+    def dentro(i,j):
+        return 0<=i<8 and 0<=j<8
 
+    def es_rival(self,i,j,jugador):
+        return self.tablero[i][j] in (3-jugador, 3-jugador+2)
+
+    #La casilla de salida de la ficha que mueve cuenta como vacía durante su jugada
+    def esta_vacia(self,i,j,origen):
+        return self.tablero[i][j]==0 or (i,j)==origen
+
+    #Secuencias de captura de un peón desde (i,j). Las piezas capturadas siguen en el tablero hasta
+    #el final de la jugada, por lo que no se pueden saltar dos veces. El peón solo captura hacia delante
+    def capturas_peon(self,i,j,jugador,capturadas,origen):
+        res = []
+        di = 1 if jugador==1 else -1
+        for dj in (1,-1):
+            ri, rj = i+di, j+dj
+            li, lj = i+2*di, j+2*dj
+            if(Damas.dentro(li,lj) and self.es_rival(ri,rj,jugador) and (ri,rj) not in capturadas and self.esta_vacia(li,lj,origen)):
+                nuevas = capturadas+[(ri,rj)]
+                siguientes = self.capturas_peon(li,lj,jugador,nuevas,origen)
+                res.extend(siguientes if siguientes else [(nuevas,(li,lj))])
+        return res
+
+    #Secuencias de captura de una dama desde (i,j): captura a distancia y puede caer en cualquier casilla
+    #libre detrás de la pieza capturada
+    def capturas_dama(self,i,j,jugador,capturadas,origen):
+        res = []
+        for di, dj in Damas.DIAGONALES:
+            ri, rj = i+di, j+dj
+            while(Damas.dentro(ri,rj) and self.esta_vacia(ri,rj,origen)):
+                ri, rj = ri+di, rj+dj
+            if(not Damas.dentro(ri,rj) or not self.es_rival(ri,rj,jugador) or (ri,rj) in capturadas):
+                continue
+            li, lj = ri+di, rj+dj
+            while(Damas.dentro(li,lj) and self.esta_vacia(li,lj,origen)):
+                nuevas = capturadas+[(ri,rj)]
+                siguientes = self.capturas_dama(li,lj,jugador,nuevas,origen)
+                res.extend(siguientes if siguientes else [(nuevas,(li,lj))])
+                li, lj = li+di, lj+dj
+        return res
+
+    #Movimientos sin captura: el peón avanza una casilla en diagonal y la dama, las que quiera
+    def movimientos_simples(self,i,j,jugador,dama):
+        res = []
+        adelante = 1 if jugador==1 else -1
+        direcciones = Damas.DIAGONALES if dama else ((adelante,1),(adelante,-1))
+        for di, dj in direcciones:
+            ni, nj = i+di, j+dj
+            while(Damas.dentro(ni,nj) and self.tablero[ni][nj]==0):
+                res.append((j,cambio_coordenada(8,i),nj,cambio_coordenada(8,ni)))
+                if not dama:
+                    break
+                ni, nj = ni+di, nj+dj
+        return res
+
+    #Devuelve los movimientos legales. Capturar es obligatorio y se debe elegir la secuencia que capture
+    #más piezas (ley de la cantidad) y, a igualdad, la que capture más damas (ley de la calidad).
+    #Los movimientos simples son (columna, fila, nueva columna, nueva fila) y las capturas
+    #[(columna, fila, nueva columna, nueva fila), [(columna, fila) de cada pieza capturada]],
+    #con las filas numeradas de abajo (0) a arriba (7)
     def obtiene_movimientos(self):
         tablero = self.tablero
         jugador = self.jugadorActual
-        jugadorRey = jugador+2
-        movimientos = []
-        numer_filas = len(tablero)
-        movimiento=(0,0,0,0)
-        captura=False
-        numCapturasMax=0
-        for i in range(numer_filas):
-            if(jugador or jugadorRey in tablero[i]):
-                for j in range(len(tablero[i])):
-                    if(tablero[i][j]==jugador):
-                        #Comprobamos si puede comer, si es asi esta obligado a hacer el movimiento con mas capturas
-                        movimientosCaptura=self.comprobar_captura(i,j,[],cambio_coordenada(numer_filas,i),j)
-                        if(movimientosCaptura):
-                            movimientosCaptura=self.limpiar_lista_capturas(movimientosCaptura)
-                            numCapturas=len(movimientosCaptura[0][1])
-                            #Si hay captura se olvidan los anteriores movimientos
-                            if(captura==False):
-                                movimientos=[]
-                                captura=True
-                            #Si la captura es mayor que las anteriores se olvidan los anteriores movimientos
-                            if(numCapturas>numCapturasMax):
-                                movimientos=[]
-                                movimientos=movimientosCaptura
-                                numCapturasMax=numCapturas
-                            #Si la captura es igual que las anteriores se añaden los nuevos movimientos
-                            elif(numCapturas==numCapturasMax):
-                                movimientos.extend(movimientosCaptura)
-                                numCapturasMax=numCapturas
-                        #Si no puede comer y no hay capturas anteriores se añaden los movimientos normales
-                        elif(captura==False): 
-                            newI=cambio_coordenada(numer_filas,i)
-                            izq=j-1
-                            der=j+1
-                            if(jugador==1):
-                                arr=i+1
-                            else:
-                                arr=i-1
-                            newArr=cambio_coordenada(numer_filas,arr)
-                            if(izq>=0 and (arr<=7 and arr>=0)):
-                                if(tablero[arr][izq]==0):
-                                    movimiento=(j,newI,izq,newArr)
-                                    movimientos.append(movimiento)                  
-                            if(der<=7 and (arr<=7 and arr>=0)):
-                                if(tablero[arr][der]==0):
-                                    movimiento=(j,newI,der,newArr)
-                                    movimientos.append(movimiento)
-                    elif(tablero[i][j]==jugadorRey):
-                        movimientosCapturaDama=self.comprobar_captura_dama(i,j,[],cambio_coordenada(numer_filas,i),j)
-                        if(movimientosCapturaDama):
-                            movimientosCapturaDama=self.limpiar_lista_capturas(movimientosCapturaDama)
-                            numCapturas=len(movimientosCapturaDama[0][1])
-                            #Si hay captura se olvidan los anteriores movimientos
-                            if(captura==False):
-                                movimientos=[]
-                                captura=True
-                            #Si la captura es mayor que las anteriores se olvidan los anteriores movimientos
-                            if(numCapturas>numCapturasMax):
-                                movimientos=[]
-                                movimientos=movimientosCapturaDama
-                                numCapturasMax=numCapturas
-                            #Si la captura es igual que las anteriores se añaden los nuevos movimientos
-                            elif(numCapturas==numCapturasMax):
-                                movimientos.extend(movimientosCapturaDama)
-                                numCapturasMax=numCapturas
-                        #Si no puede comer y no hay capturas anteriores se añaden los movimientos normales
-                        elif(captura==False):   
-                            izq=j-1
-                            arr=i-1
-                            newI=cambio_coordenada(numer_filas,i)
-                            newArr=cambio_coordenada(numer_filas,arr)
-                            while(izq>=0 and arr>=0):
-                                newArr=cambio_coordenada(numer_filas,arr)
-                                if(tablero[arr][izq]==0):
-                                    movimiento=(j,newI,izq,newArr)
-                                    movimientos.append(movimiento)
-                                    izq=izq-1
-                                    arr=arr-1
-                                else:
-                                    break
-                            der=j+1 
-                            arr=i-1
-                            newI=cambio_coordenada(numer_filas,i)
-                            newArr=cambio_coordenada(numer_filas,arr)
-                            while(der<=7 and arr>=0):
-                                newArr=cambio_coordenada(numer_filas,arr)
-                                if(tablero[arr][der]==0):
-                                    movimiento=(j,newI,der,newArr)
-                                    movimientos.append(movimiento)
-                                    der=der+1
-                                    arr=arr-1
-                                else:
-                                    break
-                            izq=j-1
-                            abj=i+1
-                            newI=cambio_coordenada(numer_filas,i)
-                            newAbj=cambio_coordenada(numer_filas,abj)   
-                            while(izq>=0 and abj<=7):
-                                newAbj=cambio_coordenada(numer_filas,abj)
-                                if(tablero[abj][izq]==0):
-                                    movimiento=(j,newI,izq,newAbj)
-                                    movimientos.append(movimiento)
-                                    izq=izq-1
-                                    abj=abj+1
-                                else:
-                                    break
-                            der=j+1 
-                            abj=i+1
-                            newI=cambio_coordenada(numer_filas,i)
-                            newAbj=cambio_coordenada(numer_filas,abj)   
-                            while(der<=7 and abj<=7):
-                                newAbj=cambio_coordenada(numer_filas,abj)
-                                if(tablero[abj][der]==0):
-                                    movimiento=(j,newI,der,newAbj)
-                                    movimientos.append(movimiento)
-                                    der=der+1
-                                    abj=abj+1
-                                else:
-                                    break
+        capturas = []
+        simples = []
+        for i in range(8):
+            for j in range(8):
+                ficha = tablero[i][j]
+                if(ficha!=jugador and ficha!=jugador+2):
+                    continue
+                dama = ficha==jugador+2
+                if(dama):
+                    secuencias = self.capturas_dama(i,j,jugador,[],(i,j))
+                else:
+                    secuencias = self.capturas_peon(i,j,jugador,[],(i,j))
+                for capturadas, (fi, fj) in secuencias:
+                    numDamas = sum(1 for (ci,cj) in capturadas if tablero[ci][cj]>2)
+                    movimiento = [(j,cambio_coordenada(8,i),fj,cambio_coordenada(8,fi)), [(cj,cambio_coordenada(8,ci)) for (ci,cj) in capturadas]]
+                    capturas.append((len(capturadas), numDamas, movimiento))
+                if(not capturas):
+                    simples.extend(self.movimientos_simples(i,j,jugador,dama))
+        if(capturas):
+            mejor = max((c[0],c[1]) for c in capturas)
+            movimientos = []
+            vistos = set()
+            for numero, numDamas, movimiento in capturas:
+                #Dos caminos que capturan las mismas piezas y acaban en la misma casilla son la misma jugada
+                clave = (movimiento[0], frozenset(movimiento[1]))
+                if((numero,numDamas)==mejor and clave not in vistos):
+                    vistos.add(clave)
+                    movimientos.append(movimiento)
+        else:
+            movimientos = simples
         return random.sample(movimientos, len(movimientos))
 
     def aplica_movimiento(self,movimiento):
@@ -470,9 +266,17 @@ class Damas:
         else:
             print("\nTurno de las blancas")
 
+    #Devuelve el jugador ganador o 0 si hay empate
+    def ganador(self):
+        if(self.gana_jugador(2)):
+            return 2
+        elif(self.gana_jugador(1)):
+            return 1
+        return 0
+
     def imprime_final(self):
         print("\nFin del juego\n")
-        numeroMovimientos = self.obtiene_movimientos()
+        numeroMovimientos = len(self.obtiene_movimientos())
         #Recorremos el tablero e imprimimos en consola el valor de cada casilla siendo 
         self.imprime_tablero()
         #Se comprueba si el estado es final y se imprime el resultado
@@ -637,7 +441,7 @@ def algoritmoContraAlgoritmo():
                     s = s.turno_mcts(algoritmo2)
                 else:
                     s=s.turno_minimax(algoritmo2)
-        resultados.append(s.gana_jugador(1))
+        resultados.append(s.ganador())
         i+=1
     if(algoritmo1.__class__.__name__=="MCTS"):
         print("\nPartidas Ganadas por el MCTS 1: ",resultados.count(1))
