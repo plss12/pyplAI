@@ -105,6 +105,14 @@ class Baraja:
         jugador.addCarta(self.cartas.pop())
 
 class Escoba:
+    #Reglas de la Escoba de 15 (reglamento de los Juegos Bonaerenses): se reparten 3 cartas a cada jugador
+    #y 4 a la mesa, y se vuelven a repartir 3 cuando todos se quedan sin cartas. Quien juega una carta que
+    #suma 15 con cartas de la mesa está obligado a llevárselas, y si se lleva todas hace escoba. Al final
+    #se cuentan escobas, cartas, oros, setenta y siete de oros; en caso de empate en cartas, oros o
+    #setenta no puntúa nadie
+
+    #Valor de cada carta en la setenta según su número (las figuras valen 10)
+    valoresSetenta={7:21, 6:18, 1:16, 5:15, 4:14, 3:13, 2:12, 8:10, 9:10, 10:10}
 
     def __init__(self,numeroJugadores,visibilidad):
         self.baraja=self.crearBaraja()
@@ -112,13 +120,15 @@ class Escoba:
         self.listaJugadores=[jugador.id for jugador in self.jugadores]
         self.mesa=self.crearMesa()
         self.jugadorActual=1
-        self.ultimoJugadorCapturando=1
+        #Reparte el último jugador, que es también el último en jugar en cada ronda
+        self.ultimoJugadorCapturando=numeroJugadores
         self.visibilidad=visibilidad
-        
+        self.escobaDeMuestra()
+
     def __str__(self):
         cadena="\nMESA:\n"+str(self.mesa)+";"+"\n\nJUGADOR:\n"+str(self.jugadores[self.jugadorActual-1])+"\n"
         return cadena
-    
+
     def crearBaraja(self):
         nuevaBaraja=Baraja()
         nuevaBaraja.barajar()
@@ -130,162 +140,133 @@ class Escoba:
             jug=Jugador(i+1)
             self.baraja.repartir(jug)
             jugadores.append(jug)
-            i+=1
         return jugadores
 
     def crearMesa(self):
         nuevaMesa=Mesa()
         Baraja.repartirMesa(self.baraja, nuevaMesa)
         return nuevaMesa
-    
+
+    #Si las cuatro cartas de la mesa suman 15, el que reparte se las lleva y se anota una escoba
+    def escobaDeMuestra(self):
+        if(sum(carta[0] for carta in self.mesa.cartas)==15):
+            repartidor=self.jugadores[-1]
+            repartidor.escobas+=1
+            repartidor.addCartasCapturadas(self.mesa.cartas)
+            self.mesa.cartas=[]
+
     def capturar(self, carta, listaCaptura):
         jugador=self.jugadores[self.jugadorActual-1]
-        numeroCartasMesa=len(self.mesa.cartas)
-        numeroCartasCapturadas=len(listaCaptura)
+        if(len(listaCaptura)==len(self.mesa.cartas)):
+            jugador.escobas+=1
         jugador.eliminarCarta(carta)
         jugador.addCartaCapturada(carta)
-        if(numeroCartasMesa==numeroCartasCapturadas):
-            jugador.escobas+=1
         jugador.addCartasCapturadas(listaCaptura)
         self.mesa.eliminarCartas(listaCaptura)
+        self.ultimoJugadorCapturando=self.jugadorActual
 
     def dejarCartaMesa(self, carta):
         self.jugadores[self.jugadorActual-1].eliminarCarta(carta[0])
         self.mesa.addCarta(carta[0])
 
+    #Al terminar la mano, las cartas que quedan en la mesa son para el último jugador que se llevó cartas
     def capturarCartasSobrantesFinales(self):
         jugadorUltimaCaptura=self.jugadores[self.ultimoJugadorCapturando-1]
         jugadorUltimaCaptura.addCartasCapturadas(self.mesa.cartas)
-        self.mesa.eliminarCartas(self.mesa.cartas)
+        self.mesa.cartas=[]
 
     def aplicarMovimiento(self,movimiento):
-        #Si el movimiento es una carta, esto es, no hay capturas, se deja en la mesa
+        #Si el movimiento solo tiene la carta, no hay captura y se deja en la mesa
         if(len(movimiento)==1):
             self.dejarCartaMesa(movimiento)
-            if(len(self.baraja.cartas)>0):
-                self.baraja.robar(self.jugadores[self.jugadorActual-1])
-        #Si el movimiento es una lista, esto es, hay capturas, se capturan
         else:
             self.capturar(movimiento[0], movimiento[1])
-            self.ultimoJugadorCapturando=self.jugadorActual
-            if(len(self.baraja.cartas)>0):
-                self.baraja.robar(self.jugadores[self.jugadorActual-1])
         self.siguienteJugador()
+        #Cuando todos se quedan sin cartas se reparten 3 más o, si no quedan, termina la mano
+        if(all(len(jugador.cartas)==0 for jugador in self.jugadores)):
+            if(len(self.baraja.cartas)>0):
+                for jugador in self.jugadores:
+                    self.baraja.repartir(jugador)
+            else:
+                self.capturarCartasSobrantesFinales()
         return self
 
     #Esta función se encarga de comprobar si hay alguna suma de 15 posible entre una de las cartas del jugador y la mesa
     @staticmethod
     def subsetSum(listaCartas, valor):
         x=15-valor
-        n=len(listaCartas)
         res = []
-        # Iterating through all possible
-        # subsets of arr from lengths 0 to n:
-        for i in range(n+1):
+        for i in range(1,len(listaCartas)+1):
             for subset in combinations(listaCartas, i):
-                # printing the subset if its sum is x:
-                valorSubset=[]
-                for carta in subset:
-                    valorSubset.append(carta[0])
-                if sum(valorSubset) == x:
+                if sum(carta[0] for carta in subset) == x:
                     res.append(list(subset))
         return res
 
     #Devuelve un diccionario con las key correspondiendo al valor de la carta y con esta estan las cartas que
-    # suman 15, asi solo hay que almacenar una vez por valor y no varias si se repitiesen cartas del mismo 
+    # suman 15, asi solo hay que almacenar una vez por valor y no varias si se repitiesen cartas del mismo
     def comprobarMovimientos(self, jugador):
         listaMovimientos={}
         listaCartasMesa=self.mesa.cartas
-        valores=[]
-        for carta in jugador.cartas:
-            valores.append(carta[0])
-        valores=list(set(valores))
+        valores=set(carta[0] for carta in jugador.cartas)
         for valor in valores:
-            listaSumas=Escoba.subsetSum(listaCartasMesa, valor)
-            listaMovimientos[valor]=listaSumas
+            listaMovimientos[valor]=Escoba.subsetSum(listaCartasMesa, valor)
         return listaMovimientos
-        
+
     def siguienteJugador(self):
         if(self.jugadorActual==len(self.jugadores)):
             self.jugadorActual=1
         else:
             self.jugadorActual+=1
-    
+
     def esEstadoFinal(self):
-        numJugadores=len(self.jugadores)
-        numJugadoresSinCartas=0
-        for jugador in self.jugadores:
-            if len(jugador.cartas)==0:
-                numJugadoresSinCartas+=1
-        if numJugadoresSinCartas==numJugadores:
-            self.capturarCartasSobrantesFinales()
-            return True
-        else:
-            return False
+        return len(self.baraja.cartas)==0 and all(len(jugador.cartas)==0 for jugador in self.jugadores)
+
+    #Índice del único jugador con el valor máximo, o None si hay empate
+    @staticmethod
+    def ganadorUnico(valores):
+        maximo=max(valores)
+        if(maximo>0 and valores.count(maximo)==1):
+            return valores.index(maximo)
+        return None
+
+    #Setenta: suma de la mejor carta de cada palo; sin cartas de los cuatro palos no se puede ganar
+    @staticmethod
+    def puntosSetenta(capturadas):
+        mejores={}
+        for carta in capturadas:
+            mejores[carta[1]]=max(mejores.get(carta[1],0), Escoba.valoresSetenta[carta[0]])
+        if(len(mejores)<4):
+            return 0
+        return sum(mejores.values())
 
     def recuentoPuntos(self):
-        puntos=[]
-        listnumSietes=[]
-        listnumOros=[]
-        listnumCartas=[]
-        i=0
+        puntos=[jugador.escobas for jugador in self.jugadores]
         if(self.visibilidad==True):
             print("\nRecuento de puntos: ")
-        for jugador in self.jugadores:
-            puntosJugador=jugador.escobas
-            if(self.visibilidad==True):
-                print("El jugador ", str(i+1)," tiene ", str(jugador.escobas), " escobas lo que equivale a ", str(jugador.escobas), " puntos")
-            capturasJugador=jugador.capturadas
-            listnumCartas.append(len(capturasJugador))
-            numSietes=0
-            numOros=0
-            for carta in capturasJugador:
-                if(carta[0]=="7"):
-                    numSietes+=1
-                if(carta[1]=="oros"):
-                    numOros+=1
-                if(carta[1]=="oros" and carta[0]==7):
-                    puntosJugador+=1
-                    if(self.visibilidad==True):
-                        print("El jugador ", str(i+1)," tiene una siete de oros (guindis) lo que equivale a 1 punto")
-            listnumSietes.append(numSietes)
-            listnumOros.append(numOros)
-            if(numSietes==4):
-                puntosJugador+=2
-                if(self.visibilidad==True): 
-                    print("El jugador ", str(i+1)," tiene los cuatro sietes lo que equivale a 2 puntos")
-            if(numOros==10):
-                puntosJugador+=2
+            for i in range(len(self.jugadores)):
+                print("El jugador ", str(i+1)," tiene ", str(puntos[i]), " escobas")
+        cartas=[len(jugador.capturadas) for jugador in self.jugadores]
+        oros=[sum(1 for carta in jugador.capturadas if carta[1]=="oros") for jugador in self.jugadores]
+        setenta=[Escoba.puntosSetenta(jugador.capturadas) for jugador in self.jugadores]
+        for nombre, valores in (("cartas",cartas),("oros",oros),("setenta",setenta)):
+            ganador=Escoba.ganadorUnico(valores)
+            if(ganador is not None):
+                puntos[ganador]+=1
                 if(self.visibilidad==True):
-                    print("El jugador ", str(i+1)," tiene todos los oros lo que equivale a 2 puntos")
-            puntos.append(puntosJugador)
-            i+=1
-        for i in range(len(puntos)):
-            if(listnumCartas[i]==max(listnumCartas)):
+                    print("El jugador ", str(ganador+1)," gana el punto de ", nombre)
+            elif(self.visibilidad==True):
+                print("Empate en ", nombre, ": nadie se anota el punto")
+        for i in range(len(self.jugadores)):
+            if([7,"oros"] in self.jugadores[i].capturadas):
                 puntos[i]+=1
                 if(self.visibilidad==True):
-                    print("El jugador ", str(i+1)," tiene el mayor numero de cartas capturadas lo que equivale a 1 punto")
-            if(listnumSietes[i]==max(listnumSietes)):
-                puntos[i]+=1
-                if(self.visibilidad==True):
-                    print("El jugador ", str(i+1)," tiene el mayor numero de sietes capturados lo que equivale a 1 punto")
-            if(listnumOros[i]==max(listnumOros)):
-                puntos[i]+=1
-                if(self.visibilidad==True):
-                    print("El jugador ", str(i+1)," tiene el mayor numero de oros capturados lo que equivale a 1 punto")
+                    print("El jugador ", str(i+1)," tiene el siete de oros (siete de velo)")
         return puntos
-    
+
+    #Gana el jugador con más puntos; si varios empatan en cabeza, la partida es un empate
     def ganaJugador(self, jugador):
-        puntos=self.recuentoPuntos()
-        maximo=max(puntos)
-        ganadores=[]
-        for i in range(len(puntos)):
-            if(puntos[i]==maximo):
-                ganadores.append(i+1)
-        if(jugador in ganadores):
-            return True
-        else:
-            return False
+        ganador=Escoba.ganadorUnico(self.recuentoPuntos())
+        return ganador is not None and ganador+1==jugador
 
     def finalPartida(self):
         puntos=self.recuentoPuntos()
@@ -305,51 +286,34 @@ class Escoba:
             if(self.visibilidad==True):
                 print(Fore.RED+"\nEl ganador es el jugador "+str(ganador+1)+" con "+str(maximo)+" puntos")
             return [ganador+1]
-        
 
-    #Es el encargado de traducir el diccionario con los valores y las cartas que suman 15 a una lista, con todas las
-    #cartas con sus posibles capturas aunque estas se repitan en valor, o solo las cartas si no hay ningun movimiento 
+    #Traduce el diccionario de sumas de 15 a la lista de movimientos: cada carta que suma 15 con cartas
+    #de la mesa debe llevárselas (una opción por cada combinación posible) y el resto se dejan en la mesa
     @staticmethod
     def traducirPosiblesMovimientos(cartas,diccMovimientos,visibilidad):
         res=[]
-        #Recorremos las cartas del jugador y comprobamos si hay alguna tiene alguna captura
         for carta in cartas:
             capturas=diccMovimientos[carta[0]]
             if(len(capturas)>0):
-                for capturas in capturas:
-                    res.append([carta, capturas])
-        #Si no hay ninguna carta con captura, se deja una carta en la mesa
-        sum=0
-        if (len(res)==0):
-            if(visibilidad==True):
-                print("No hay capturas posibles, debes dejar alguna de tus cartas en la mesa")
-            x=1
-            for carta in cartas:
+                for captura in capturas:
+                    res.append([carta, captura])
+            else:
                 res.append([carta])
-                if(visibilidad==True):
-                    print(x,"º: Dejar "+str(carta[0]) + " de " +carta[1])
-                x+=1
-            sum=len(res)
-        #Si hay alguna carta con captura, se muestran todas las posibles
-        else:
-            x=1
-            for i in res:
-                cartasCaptura=""
-                for carta in i[1]:
-                    cartasCaptura+=str(carta[0]) + " de " +carta[1]+", "
-                if(visibilidad==True):
-                    print(x,"º: Puedes capturar con "+str(i[0][0]) + " de " +i[0][1]+" las cartas: "+cartasCaptura.rstrip(", "))
-                x+=1
-            sum+=len(res)
         if(visibilidad==True):
-            print("Posibles mov ",sum)
+            for x, movimiento in enumerate(res, start=1):
+                carta=movimiento[0]
+                if(len(movimiento)==1):
+                    print(x,"º: Dejar "+str(carta[0]) + " de " +carta[1])
+                else:
+                    cartasCaptura=", ".join(str(c[0]) + " de " + c[1] for c in movimiento[1])
+                    print(x,"º: Capturar con "+str(carta[0]) + " de " +carta[1]+" las cartas: "+cartasCaptura)
         return res
 
     def obtieneMovimientos(self): #Obtiene los movimientos disponibles traducidos
         movsSinTraducir = self.comprobarMovimientos(self.jugadores[self.jugadorActual-1])
         movsTraducidos = self.traducirPosiblesMovimientos(self.jugadores[self.jugadorActual-1].cartas, movsSinTraducir, self.visibilidad)
         return movsTraducidos
-    
+
     #Función que a partir del estado de la partida y un jugador de la partida, devuelve una determinización aleatoria 
     #posible de la partida a través de obtener la información disponible del estado de la partida para el jugador
     def determinization(self): 
@@ -398,8 +362,7 @@ class Escoba:
         self.imprimeEstado()
         listaMov=self.comprobarMovimientos(self.jugadores[self.jugadorActual-1])
         traducido=self.traducirPosiblesMovimientos(self.jugadores[self.jugadorActual-1].cartas,listaMov,self.visibilidad)
-        indiceMov=1
-        movimiento=traducido[indiceMov-1]
+        movimiento=random.choice(traducido)
         self.aplicarMovimiento(movimiento)
 
     def rondaMCTS(self,mcts):
