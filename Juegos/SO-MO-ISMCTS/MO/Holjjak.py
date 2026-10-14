@@ -142,12 +142,11 @@ class Holjjak:
         print("===========================================\n")
         return self.aplica_movimiento(mov)
             
-    def turno_mcts(self,mcts,ismcts):
+    #El algoritmo de información imperfecta decide en las dos fases: al esconder canicas el rival no
+    #ve cuántas se esconden, y al adivinar el propio jugador no las ve
+    def turno_mcts(self,ismcts):
         self.imprime_estado()
-        if(self.turno==0):
-            mov = mcts.ejecuta(self)
-        else:
-            mov = ismcts.ejecuta(self)
+        mov = ismcts.ejecuta(self)
         if(mov!=None):                
             print("===========================================\n")
             return self.aplica_movimiento(mov)
@@ -182,7 +181,6 @@ def jugadorContraISMCTS():
         ismcts = pyplAI.SOISMCTS(Holjjak.aplica_movimiento,Holjjak.obtiene_movimientos,Holjjak.es_estado_final,Holjjak.gana_jugador,Holjjak.determinization,Holjjak.jugadores,tiempoEjecucion, True)
     else:
         ismcts = pyplAI.MOISMCTS(Holjjak.aplica_movimiento,Holjjak.obtiene_movimientos,Holjjak.es_estado_final,Holjjak.gana_jugador,Holjjak.determinization,Holjjak.accion_visible,Holjjak.jugadores,tiempoEjecucion, True)
-    mcts = pyplAI.MCTS(Holjjak.aplica_movimiento, Holjjak.obtiene_movimientos, Holjjak.es_estado_final, Holjjak.gana_jugador,Holjjak.jugadores, tiempoEjecucion, True)
 
     posicionJugador = int(input("¿Desea jugar primero o segundo? (1-2)\n"))
     while(posicionJugador<1 or posicionJugador>2):
@@ -196,7 +194,7 @@ def jugadorContraISMCTS():
             estado.turno_jugador()
         else:
             print(Fore.BLUE+"\nTurno del SOISMCTS "+str(jugador))
-            estado.turno_mcts(mcts,ismcts)
+            estado.turno_mcts(ismcts)
     estado.imprime_final()
 
 def jugadorContraJugador():
@@ -235,7 +233,6 @@ def ISMCTSContraISMCTS():
     else:
         ismcts1=pyplAI.MOISMCTS(Holjjak.aplica_movimiento,Holjjak.obtiene_movimientos,Holjjak.es_estado_final,Holjjak.gana_jugador,Holjjak.determinization,Holjjak.accion_visible,Holjjak.jugadores,tiempoEjecucion, True)
         ismcts2=pyplAI.MOISMCTS(Holjjak.aplica_movimiento,Holjjak.obtiene_movimientos,Holjjak.es_estado_final,Holjjak.gana_jugador,Holjjak.determinization,Holjjak.accion_visible,Holjjak.jugadores,tiempoEjecucion, True)
-    mcts = pyplAI.MCTS(Holjjak.aplica_movimiento, Holjjak.obtiene_movimientos, Holjjak.es_estado_final, Holjjak.gana_jugador,Holjjak.jugadores, tiempoEjecucion, True)
 
     resultados=[]
     i=0
@@ -248,13 +245,13 @@ def ISMCTSContraISMCTS():
                     print(Fore.RED+"\nTurno del SOISMCTS "+str(jugador))
                 else:
                     print(Fore.RED+"\nTurno del MOISMCTS "+str(jugador))
-                estado.turno_mcts(mcts,ismcts1)
+                estado.turno_mcts(ismcts1)
             else:
                 if(modo==1 or modo==3):
                     print(Fore.BLUE+"\nTurno del SOISMCTS "+str(jugador))
                 else:
                     print(Fore.BLUE+"\nTurno del MOISMCTS "+str(jugador))
-                estado.turno_mcts(mcts,ismcts2)
+                estado.turno_mcts(ismcts2)
         res=estado.imprime_final()
         resultados.append(res)
         i+=1
@@ -286,7 +283,6 @@ def ISMCTSContraAleatorio():
         ismcts=pyplAI.SOISMCTS(Holjjak.aplica_movimiento,Holjjak.obtiene_movimientos,Holjjak.es_estado_final,Holjjak.gana_jugador,Holjjak.determinization,Holjjak.jugadores,tiempoEjecucion, True)
     else:
         ismcts=pyplAI.MOISMCTS(Holjjak.aplica_movimiento,Holjjak.obtiene_movimientos,Holjjak.es_estado_final,Holjjak.gana_jugador,Holjjak.determinization,Holjjak.accion_visible,Holjjak.jugadores,tiempoEjecucion, True)
-    mcts = pyplAI.MCTS(Holjjak.aplica_movimiento, Holjjak.obtiene_movimientos, Holjjak.es_estado_final, Holjjak.gana_jugador,Holjjak.jugadores, tiempoEjecucion, True)
 
     resultados=[]
     i=0
@@ -299,7 +295,7 @@ def ISMCTSContraAleatorio():
                     print(Fore.RED+"\nTurno del SOISMCTS "+str(jugador))
                 else:
                     print(Fore.RED+"\nTurno del MOISMCTS "+str(jugador))
-                estado.turno_mcts(mcts,ismcts)
+                estado.turno_mcts(ismcts)
             else:
                 print(Fore.BLUE+"\nTurno del jugador aleatorio "+str(jugador))
                 estado.turno_aleatorio()

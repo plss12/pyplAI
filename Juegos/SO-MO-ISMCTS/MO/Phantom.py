@@ -148,7 +148,6 @@ class Phantom:
         fichasRival=[jugadorRival]*(numeroFichasRival-numeroFichasRivalVisibles)
         fichas.extend(espacios)
         fichas.extend(fichasRival)
-        random.sample(fichas,len(fichas))
         #Recorremos el tablero y colocamos aleatoriamente las fichas que no sabemos donde estan situadas
         #en las posiciones que no sabemos que contienen
         for i in range(4):
