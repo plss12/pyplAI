@@ -422,7 +422,7 @@ class Stratego:
         movimientoSeleccionado=movs[mov-1]
         if(len(movimientoSeleccionado)==2):
             ficha=self.tablero[movimientoSeleccionado[1][0]][movimientoSeleccionado[1][1]]
-            if(ficha.valor!=11 or ficha.valor!=12):
+            if(ficha.valor!=11 and ficha.valor!=12):
                 print("Has atacado a ",ficha.nombre," (",ficha.valor,")")
             else:
                 print("Has atacado a una",ficha.nombre)
@@ -597,10 +597,10 @@ def posicionFichasJugador():
             res[i].append(valor)
     return res
 
+#Devuelve la colocación con mayor fitness de las guardadas por el algoritmo genético
 def posicionFichasAlgoritmoGenetico():
     genes = cargar_genes()
-    mejorGen = random.choice(list(genes.keys()))
-    mejorGen = genes[mejorGen]
+    fitness, mejorGen = max(genes, key=lambda gen: gen[0])
     return mejorGen
 
 class Cromosoma:
@@ -722,13 +722,15 @@ class Poblacion:
             cromosoma.sumaParcial=suma
         self.sumaTotal=suma
     
-    #Selección por ruleta
+    #Selección por ruleta (si todos los fitness son 0, todos tienen la misma probabilidad)
     def selecciona(self):
+        if(self.sumaTotal<=0):
+            return random.choice(self.poblacion)
         num = random.random()*self.sumaTotal
         for cromosoma in self.poblacion:
             if(num<cromosoma.sumaParcial):
                 return cromosoma
-        return None
+        return self.poblacion[-1]
     
     def seleccionaVarios(self,numero):
         res = []
@@ -804,14 +806,15 @@ def cargar_genes():
     file_location = script_location / "Stratego.txt"
     f = open(file_location,"r")
     genes = f.readlines()
-    dicc = {}
+    res = []
     for gen in genes:
+        if(gen.strip()==""):
+            continue
         gen = gen.split(" ; ")
-        gen[1] = float(gen[1].replace("\n",""))
-        filas = gen_a_filas(gen[0])
-        dicc[gen[1]]=filas
+        fitness = float(gen[1].strip())
+        res.append((fitness, gen_a_filas(gen[0])))
     f.close()
-    return dicc
+    return res
 
 def gen_a_filas(gen):
     gen = gen.split(",")

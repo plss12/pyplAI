@@ -14,8 +14,9 @@ init(autoreset=True)
 #Creamos un tablero en el cual actuara como el tablero principal, y se completará si se gana una partida dentro de el
 
 class UltimateTTT():
-    jugadores = [1,2]
     jugadores = 2
+    #Valor que marca en el tablero principal un subtablero lleno sin ganador (tablas)
+    TABLAS = 3
 
     @staticmethod
     def tablero_inicial():
@@ -102,6 +103,9 @@ class UltimateTTT():
         tablero_secundario[a[2]][a[3]]=jugador
         if(self.gana_jugador_tablero(tablero_secundario,jugador)):
             self.actualiza_tablero_principal((a[0],a[1]),jugador)
+        #Un subtablero lleno sin ganador queda cerrado en tablas: si te envían a él, puedes jugar en cualquier otro
+        elif(len(self.obtiene_movimientos_tablero(tablero_secundario))==0):
+            self.actualiza_tablero_principal((a[0],a[1]),UltimateTTT.TABLAS)
         self.jugadorActual = 3-jugador
         self.tableroJugada = (a[2],a[3])
         return self
@@ -210,21 +214,25 @@ class UltimateTTT():
                 res+=2*self.evalua_tablero(tablero,jugador)
         return res
 
+    #Devuelve el jugador ganador o 0 si hay empate
+    def ganador(self):
+        if(self.gana_jugador(1)):
+            return 1
+        elif(self.gana_jugador(2)):
+            return 2
+        return 0
+
     def imprime_final(self):
         self.imprime_tablero()
         tablero_final = self.tableroPrincipal
         for i in range(3):
             print(tablero_final[i])
-        #Al aplicar movimiento se cambia el jugador, el ganador es el jugador anterior
-        if(self.gana_jugador(1)):
-            print("Gana el jugador 1")
-            return 1
-        elif(self.gana_jugador(2)):
-            print("Gana el jugador 2")
-            return 2
-        else:
+        res = self.ganador()
+        if(res==0):
             print("Empate")
-            return 0
+        else:
+            print("Gana el jugador "+str(res))
+        return res
     
     def turno_jugador(self):
         print(Fore.RED+"Turno Jugador "+str(self.jugadorActual))
@@ -366,7 +374,7 @@ def algoritmoContraAlgoritmo():
                     s = s.turno_mcts(algoritmo2)
                 else:
                     s=s.turno_minimax(algoritmo2)
-        resultados.append(s.gana_jugador(1))
+        resultados.append(s.ganador())
         i+=1
     if(algoritmo1.__class__.__name__=="MCTS"):
         print("\nPartidas Ganadas por el MCTS 1: ",resultados.count(1))

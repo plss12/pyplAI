@@ -64,18 +64,22 @@ class TicTacToe:
                 print(tablero[i][j],end=" ")
         print("\n")
     
-    def imprime_final(self):
-        self.imprime_tablero()
-        #Al aplicar movimiento se cambia el jugador, el ganador es el jugador anterior
+    #Devuelve el jugador ganador o 0 si hay empate
+    def ganador(self):
         if(self.gana_jugador(1)):
-            print("Gana el jugador 1")
             return 1
         elif(self.gana_jugador(2)):
-            print("Gana el jugador 2")
             return 2
-        else:
+        return 0
+
+    def imprime_final(self):
+        self.imprime_tablero()
+        res = self.ganador()
+        if(res==0):
             print("Empate")
-            return 0
+        else:
+            print("Gana el jugador "+str(res))
+        return res
 
     def heuristica(self,jugador):
         tablero = self.tablero
@@ -98,9 +102,9 @@ class TicTacToe:
                 elif tablero[x1][y1]==tablero[x2][y2] == 3-jugador and tablero[x3][y3] == 0:
                     contadorPosibles3Enemigos+=1
                 if tablero[x1][y1]== jugador and tablero[x2][y2] == tablero[x3][y3] == 0:
-                    contadorPosibles3+=1
+                    contadorPosibles2+=1
                 elif tablero[x1][y1]== 3-jugador and tablero[x2][y2] == tablero[x3][y3] == 0:
-                    contadorPosibles3Enemigos+=1
+                    contadorPosibles2Enemigos+=1
         return 10*(contadorPosibles3 - contadorPosibles3Enemigos)+ contadorPosibles2 - contadorPosibles2Enemigos
 
     def turno_jugador(self):
@@ -243,7 +247,7 @@ def algoritmoContraAlgoritmo():
                 else:
                     s=s.turno_minimax(algoritmo2)
         s.imprime_final()
-        resultados.append(s.gana_jugador(1))
+        resultados.append(s.ganador())
         i+=1
     if(algoritmo1.__class__.__name__=="MCTS"):
         print("\nPartidas Ganadas por el MCTS 1: ",resultados.count(1))
