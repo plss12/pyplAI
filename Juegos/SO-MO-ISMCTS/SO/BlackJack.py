@@ -315,42 +315,35 @@ class BlackJack:
         else:
             print("\nTienes los mismos créditos que al principio de la partida")
 
-    def gana_jugador(self,jugador): #Comprueba si el jugador gana
+    #El jugador 1 es el jugador y el 2 la banca. Si los créditos no cambian es un empate y no gana ninguno
+    def gana_jugador(self,jugador):
         creditosIniciales=self.jugador.creditosIniciales
         creditosFinales=self.jugador.creditos
         if(jugador==1):
-            if(creditosIniciales<=creditosFinales):
-                return True
-            else:
-                return False
+            return creditosFinales>creditosIniciales
         else:
-            if(creditosIniciales>=creditosFinales):
-                return True
-            else:
-                return False
-        
+            return creditosFinales<creditosIniciales
+
     def gana_jugador_ronda(self, jugador):
         creditosInicialesRonda=self.jugador.creditosAnteriores
         creditosFinalesRonda=self.jugador.creditos
         if(jugador==1):
-            if(creditosFinalesRonda>=creditosInicialesRonda):
-                return True
-            else:
-                return False
+            return creditosFinalesRonda>creditosInicialesRonda
         else:
-            if(creditosFinalesRonda<=creditosInicialesRonda):
-                return True
-            else:
-                return False
+            return creditosFinalesRonda<creditosInicialesRonda
 
+    #El jugador no ve la carta tapada del croupier ni el mazo: la carta tapada se sustituye por una carta
+    #aleatoria de entre todas las que no ve, y la carta real vuelve al mazo
     def determinization(self):
-        cartas_no_visibles=[]
-        cartas_no_visibles.extend(self.baraja.cartas)
-        cartas_no_visibles.append(self.croupier.cartaOculta)
-        random.shuffle(cartas_no_visibles)
         determinization=deepcopy(self)
-        determinization.croupier.cartaOculta=random.choice(cartas_no_visibles)
-        cartas_no_visibles.remove(determinization.croupier.cartaOculta)
+        croupier=determinization.croupier
+        if(croupier.cartaOculta is None):
+            return determinization
+        cartas_no_visibles=determinization.baraja.cartas+[croupier.cartaOculta]
+        nuevaOculta=random.choice(cartas_no_visibles)
+        cartas_no_visibles.remove(nuevaOculta)
+        croupier.mano[0]=nuevaOculta
+        croupier.cartaOculta=nuevaOculta
         determinization.baraja.cartas=cartas_no_visibles
         return determinization
 
