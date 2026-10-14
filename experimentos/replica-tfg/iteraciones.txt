@@ -1,0 +1,4 @@
+phantom: SO 2864 it/s, MO 2618 it/s, SO/MO media 1.09 (mín 0.95, máx 1.21) en 20 posiciones
+holjjak: SO 13970 it/s, MO 18759 it/s, SO/MO media 0.75 (mín 0.56, máx 0.93) en 20 posiciones
+phantom (1.0.3): SO 2709 it/s, MO 2460 it/s, SO/MO media 1.10 (mín 0.99, máx 1.26) en 20 posiciones
+holjjak (1.0.3): SO 14206 it/s, MO 18586 it/s, SO/MO media 0.77 (mín 0.55, máx 0.96) en 20 posiciones
