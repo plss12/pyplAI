@@ -5,7 +5,7 @@ Esta biblioteca para *Python* es el resultado final de un Trabajo de Fin de Grad
 
 ### Juegos de Información Perfecta
 
-Para este tipo de juegos se han implementado los algoritmos de *MCTS con UCT* [[1]](#MCTS) y *minimax* con la técnica de *poda de alfa-beta* [[2]](#Minimax). Además, como ejemplos para ver el correcto uso de la biblioteca, se han creado diferentes juegos de mesa, entre ellos, el *Tic-Tac-Toe* (3 en raya), el *Ultimate Tic-Tac-Toe* [[3]](#UltimateTicTacToe) y las *damas*.
+Para este tipo de juegos se han implementado los algoritmos de *MCTS con UCT* [[1]](#MCTS) y *minimax* con la técnica de *poda de alfa-beta* [[2]](#Minimax) [[7]](#AlfaBeta). Además, como ejemplos para ver el correcto uso de la biblioteca, se han creado diferentes juegos de mesa, entre ellos, el *Tic-Tac-Toe* (3 en raya), el *Ultimate Tic-Tac-Toe* [[3]](#UltimateTicTacToe) y las *damas*.
 
 ### Juegos de Información Imperfecta
 
@@ -16,7 +16,7 @@ Un ejemplo serían los juegos en los que un jugador intercambia una de las carta
 Para estos algoritmos también se han desarrollado varios juegos como ejemplos de uso de la biblioteca, aunque ambos algoritmos se pueden usar en todos los juegos de información imperfecta, se ha diferenciado entre juegos para el *SO-ISMCTS* y el *MO-ISMCTS*. Para el primer algoritmo se ha creado el juego de la *escoba*, el *Stratego* y el *blackJack*, y para el segundo se ha desarrollado el *holjjak* (juego de adivinar las canicas del rival) y el *phantom* (variante del 4 en raya en el que no se ven los movimientos del rival).
 
 ## Manual de Uso
-El primer paso necesario para poder usar esta biblioteca es descargarla. Se puede descargar la biblioteca desde la consola usando el comando: 
+El primer paso necesario para poder usar esta biblioteca es descargarla. Requiere *Python* 3.9 o superior y no tiene dependencias externas. Se puede descargar la biblioteca desde la consola usando el comando: 
 
 ``` python
 pip install pyplAI
@@ -58,7 +58,7 @@ Además del atributo para identificar el jugador actual del estado del juego, es
 
 Los siguientes 4 métodos serán obligatorios para todos los algoritmos que se implementan en esta biblioteca:
 
-**•	obtiene_movimientos(self):** Devolverá una lista con todos los movimientos posibles del jugador actual del estado del juego, es recomendable devolver estos movimientos en un orden aleatorio.
+**•	obtiene_movimientos(self):** Devolverá una lista con todos los movimientos posibles del jugador actual del estado del juego, es recomendable devolver estos movimientos en un orden aleatorio. Todo estado que no sea final debe tener al menos un movimiento; si no lo tiene, los algoritmos lanzan un *ValueError* que lo indica. Los movimientos deben poder compararse con `==`, ya que los algoritmos los usan para reconocer el mismo movimiento en distintos estados.
 
 ``` python
   class Juego:
@@ -140,6 +140,8 @@ Por ejemplo, para un juego de cartas en el que cada jugador tiene una mano, hay 
 
 Con esta información, este método debe dar un estado del juego en el que aleatoriamente se distribuyan las cartas que el jugador no tiene localizadas entre las zonas en las que no sabe que cartas hay, en este caso, las zonas serían las manos de los rivales y el mazo de robo.
 
+Es importante que la determinación sustituya de verdad toda la información oculta (por ejemplo, la carta tapada de un rival tanto en el atributo que la guarda como en su mano), ya que si queda algún dato real el algoritmo jugará viéndolo. Además, la determinación no debe cambiar la información propia del jugador actual, como sus cartas o sus movimientos posibles.
+
 ### Métodos MO-ISMCTS
 
 Además, para el funcionamiento del algoritmo *MO-ISMCTS* se necesitará otro método adicional:
@@ -192,7 +194,7 @@ Una vez tengamos todos estos métodos solamente debemos llamar a la biblioteca y
 
 **•	tiempoEjecucion:** Este argumento es común para todos los algoritmos de Monte Carlo, ya que, estos algoritmos necesitan un tiempo límite de ejecución antes de devolver el mejor movimiento encontrado. Este argumento debe ser un número real mayor que cero y representa el tiempo de ejecución en segundos.
 
-**•	profundidadBusqueda:** Este argumento solo es necesario en la llamada al constructor del algoritmo de *minimax*, y sirve para limitar la profundidad en el árbol de búsqueda. Este argumento debe ser un número entero mayor que cero.
+**•	profundidadBusqueda:** Este argumento solo es necesario en la llamada al constructor del algoritmo de *minimax*, y sirve para limitar la profundidad en el árbol de búsqueda. Este argumento debe ser un número entero mayor que cero e indica el número de jugadas (niveles del árbol) que se exploran a partir del estado actual. Las victorias y derrotas valen ±10⁹ ajustados por la profundidad a la que se alcanzan, de forma que el algoritmo prefiere ganar cuanto antes y perder cuanto más tarde; por ello, la heurística debe devolver valores de menor magnitud.
 
 Sabiendo todo esto ya podemos ver como se deben hacer las llamadas a la biblioteca y los constructores para cada uno de los tipos de algoritmos. Es muy importante que se siga el orden mostrado en los argumentos de entrada. Además, recordar que *Juego* es la clase de ejemplo que contiene la información sobre el estado del juego, como el atributo *jugadorActual*, y los métodos explicados anteriormente.
 
@@ -263,6 +265,24 @@ Si queremos ver algunos detalles cuando ejecutemos el algoritmo, se debe añadir
          True)
 ```
 
+**•	Parámetros opcionales:** Los algoritmos de *Monte Carlo* aceptan además los siguientes argumentos con nombre:
+
+- *iteraciones*: número fijo de iteraciones de búsqueda. Si se indica, se usa en lugar del límite de tiempo.
+- *semilla*: semilla del generador de números aleatorios del algoritmo, para obtener búsquedas reproducibles. Si no se indica, se usa el módulo *random* de *Python*, por lo que `random.seed()` sigue controlando la biblioteca.
+- *seleccion_final* (solo *MCTS*): criterio para elegir el movimiento final. Con `"media"` (por defecto) se elige el hijo con mayor recompensa media, como en el algoritmo *UCT* original [[1]](#MCTS); con `"visitas"` se elige el hijo más visitado. *SO-ISMCTS* y *MO-ISMCTS* eligen siempre el más visitado, como en su artículo original [[4]](#ISMCTS).
+
+``` python
+  mcts = pyplAI.MCTS(
+         Juego.aplica_movimiento,
+         Juego.obtiene_movimientos,
+         Juego.es_estado_final,
+         Juego.gana_jugador,
+         numeroJugadores,
+         tiempoEjecucion,
+         iteraciones=2000,
+         semilla=42)
+```
+
 ### Ejecución Algoritmo
 
 Una vez tengamos el objeto del algoritmo que se quiere utilizar solamente se debe llamar a su método *ejecuta* y pasarle como argumento el objeto que contiene el estado actual del juego, esto devolverá el mejor movimiento encontrado durante el tiempo de computación dado, para los algoritmos de *Monte Carlo*, o la profundidad de búsqueda, en el caso del algoritmo *minimax*. A continuación, se mostrará el código de ejemplo en el que se usa el algoritmo de *MCTS* para obtener un movimiento y seguidamente aplicarlo al juego, obteniendo así un nuevo estado del juego:
@@ -271,13 +291,54 @@ Una vez tengamos el objeto del algoritmo que se quiere utilizar solamente se deb
   def main():
       juego = Juego()
       movimiento = mcts.ejecuta(juego)
-      juego = aplica_movimiento(movimiento)
+      juego = juego.aplica_movimiento(movimiento)
 ```
 
 
-En caso de que el estado del juego no tenga ningún movimiento posible para aplicar los algoritmos devolverán *None*, y si solo hay un posible movimiento para aplicar, para ahorrar cálculos innecesarios, se devolverá el único movimiento posible.
+En caso de que el estado del juego sea final o no tenga ningún movimiento posible para aplicar los algoritmos devolverán *None*, y si solo hay un posible movimiento para aplicar, para ahorrar cálculos innecesarios, se devolverá el único movimiento posible.
+
+### Análisis de un Estado
+
+Además de *ejecuta*, todos los algoritmos tienen el método *analiza*, que devuelve un objeto *ResultadoAnalisis* con el movimiento elegido y una evaluación de todos los movimientos posibles, ordenados de mejor a peor. A diferencia del modo *verbose*, este método no escribe nada por consola, por lo que se puede usar desde otras aplicaciones.
+
+``` python
+  resultado = mcts.analiza(juego)
+  resultado.movimiento    # Movimiento elegido
+  resultado.iteraciones   # Iteraciones realizadas (o estados evaluados en minimax)
+  resultado.nodos         # Nodos creados en el árbol
+  resultado.tiempo        # Tiempo de búsqueda en segundos
+  for evaluacion in resultado.movimientos:
+      evaluacion.movimiento  # Movimiento
+      evaluacion.visitas     # Visitas del nodo (0 en minimax)
+      evaluacion.valor       # Recompensa media (entre 0 y 1) o valor minimax
+```
+
+En los algoritmos de *Monte Carlo* el valor es la recompensa media obtenida por el jugador actual con ese movimiento: 1 por victoria, 0 por derrota y 0.5 por empate. En *minimax* es el valor exacto del movimiento con la profundidad dada.
 
 Si se tienen dudas sobre como integrar la biblioteca a juegos propios se recomienda ver los juegos del repositorio de *GitHub* ([*pyplAI*](https://github.com/plss12/pyplAI)) como ejemplos de uso. Este repositorio contiene la biblioteca y todos los juegos nombrados en la introducción de este manual, incluyendo las implementaciones de los algoritmos correspondientes con cada uno de ellos.
+
+## Juegos de Ejemplo
+
+Los juegos de la carpeta *Juegos* siguen las reglas oficiales o, cuando son variantes, se indica:
+
+- **Tic-Tac-Toe** y **Ultimate Tic-Tac-Toe** [[3]](#UltimateTicTacToe): si un jugador es enviado a un tablero pequeño ya ganado o lleno, puede jugar en cualquier otro.
+- **Damas españolas** [[6]](#Damas): el peón mueve y captura solo hacia delante, la dama mueve y captura a distancia, capturar es obligatorio con las leyes de la cantidad y de la calidad, y las piezas capturadas se retiran al final de la jugada. Para limitar la duración, la partida acaba en tablas tras un número de turnos.
+- **Escoba de 15** [[5]](#Escoba): reparto de 3 cartas por jugador y 4 a la mesa, escoba de muestra para el que reparte, obligación de llevarse las cartas que sumen 15 con la carta jugada y recuento de escobas, cartas, oros, setenta y siete de oros.
+- **Blackjack**: reglas de casino con 4 mazos; el croupier pide carta hasta llegar a 17.
+- **Stratego**: variante en un tablero de 8x10 con 30 fichas por jugador y límite de turnos.
+- **Phantom (4,4,4)** [[4]](#ISMCTS): cuatro en raya en un tablero de 4x4 en el que no se ven las fichas del rival.
+- **Holjjak**: juego de adivinar si el rival esconde un número par o impar de canicas.
+
+## Tests
+
+Los tests de la biblioteca y de las reglas de los juegos se ejecutan con *pytest*:
+
+``` python
+pip install -e ".[dev]"
+python -m pytest
+```
+
+Los cambios de cada versión se recogen en el [CHANGELOG](CHANGELOG.md).
 
 ## Contacto
 
@@ -296,3 +357,12 @@ En caso de tener alguna duda, idea o aportación sobre la biblioteca por favor c
 
 <a id="ISMCTS"></a>
 [4] Peter I. Cowling, Edward J. Powley, and Daniel Whitehouse. Information setmonte carlo tree search. IEEE Transactions on Computational Intelligence and AIin Games, 4(2):120–143, 2012. doi: 10.1109/TCIAIG.2012.2200894. URL https://ieeexplore.ieee.org/document/6203567.
+
+<a id="Escoba"></a>
+[5] Juegos Bonaerenses. Reglamento de Escoba de 15, 2026. URL https://juegos.gba.gob.ar/wp-content/uploads/2026/reglamentos/especificos/deportes_adultos_mayores/escoba_de_15.pdf.
+
+<a id="Damas"></a>
+[6] Ludoteka. Damas españolas: reglas del juego. URL https://www.ludoteka.com/clasika/damas_clasicas.html.
+
+<a id="AlfaBeta"></a>
+[7] Donald E. Knuth and Ronald W. Moore. An analysis of alpha-beta pruning. Artificial Intelligence, 6(4):293–326, 1975. doi: 10.1016/0004-3702(75)90019-3.
