@@ -12,6 +12,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # Ubuntu 26.04 (ubuntu-latest) no tiene Python 3.9, así que esa versión se prueba en 24.04.
+        exclude:
+          - os: ubuntu-latest
+            python-version: "3.9"
+        include:
+          - os: ubuntu-24.04
+            python-version: "3.9"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
